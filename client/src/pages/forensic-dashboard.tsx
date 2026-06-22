@@ -75,7 +75,7 @@ interface AdmissionSubmission {
   email: string;
   phone: string;
   institution: string;
-  qualificationOfInterest: string;
+  productOfInterest: string;
 }
 
 interface SupportSubmission {
@@ -339,7 +339,7 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
         { header: "Email Address", key: "email", width: 25 },
         { header: "Phone Number", key: "phone", width: 15 },
         { header: "Institution", key: "institution", width: 25 },
-        { header: "Qualification of Interest", key: "qualificationOfInterest", width: 30 },
+        { header: "Product of Interest", key: "productOfInterest", width: 30 },
         { header: "Registered At", key: "registeredAt", width: 25 }
       ];
       
@@ -350,7 +350,7 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
           email: adm.email || "N/A",
           phone: adm.phone,
           institution: adm.institution || "N/A",
-          qualificationOfInterest: adm.qualificationOfInterest,
+          productOfInterest: adm.productOfInterest,
           registeredAt: new Date(adm.createdAt).toLocaleString()
         });
       });
@@ -469,8 +469,8 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="Marketing System"
+      title="CIC CRM"
+      subtitle="FORENSIC DASHBOARD"
       navGroups={navGroups}
       activeTab="campaigns"
       setActiveTab={(tab) => {
@@ -640,7 +640,7 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
                   <Table>
                     <TableHeader className="bg-slate-50/50">
                       <TableRow>
-                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 pl-6">Student</TableHead>
+                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 pl-6">Stakeholder</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4">Contact Info</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 max-w-[300px]">Reported Issue</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 min-w-[200px]">Target Department</TableHead>
@@ -790,10 +790,10 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
                   <Table>
                     <TableHeader className="bg-slate-50/50">
                       <TableRow>
-                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 pl-6">Student</TableHead>
+                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 pl-6">Stakeholder</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4">Contact Info</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4">Institution</TableHead>
-                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4">Qualification of Interest</TableHead>
+                        <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4">Product of Interest</TableHead>
                         <TableHead className="font-black text-xs uppercase tracking-wider text-slate-500 py-4 pr-6 text-right">Registered At</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -816,7 +816,7 @@ export default function ForensicDashboard({ id }: ForensicDashboardProps) {
                             </TableCell>
                             <TableCell className="py-5">
                               <Badge className="rounded-lg bg-blue-50 text-[#004E98] hover:bg-blue-50 border-none font-bold uppercase text-[10px] tracking-wider px-3 py-1">
-                                {sub.qualificationOfInterest}
+                                {sub.productOfInterest}
                               </Badge>
                             </TableCell>
                             <TableCell className="py-5 pr-6 text-right text-xs font-bold text-slate-400">

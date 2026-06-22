@@ -51,7 +51,7 @@ function handleExportPDF() {
     printWindow.document.write(`
     <html>
       <head>
-        <title>Stakeholders — KASNEB CRM</title>
+        <title>Stakeholders — CIC CRM</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
           h1 { color: #004E98; font-size: 20px; margin-bottom: 4px; }
@@ -64,7 +64,7 @@ function handleExportPDF() {
       </head>
       <body>
         <h1>Stakeholders</h1>
-        <p class="sub">Exported on ${new Date().toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} — KASNEB CRM</p>
+        <p class="sub">Exported on ${new Date().toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} — CIC CRM</p>
         ${table.outerHTML}
         <script>window.onload = () => { window.print(); window.close(); }<\/script>
       </body>
@@ -102,7 +102,7 @@ export function StakeholderDirectory({
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 leading-none">Stakeholders</h3>
                             <p className="text-sm text-gray-500 mt-2 flex items-center gap-1.5 font-medium">
-                                Browse and manage registered KASNEB stakeholders
+                                Browse and manage registered CIC CRM stakeholders
                             </p>
                         </div>
                     </div>
@@ -129,19 +129,13 @@ export function StakeholderDirectory({
                             </SelectTrigger>
                             <SelectContent position="popper">
                                 <SelectItem value="all">All Stages</SelectItem>
+                                <SelectItem value="lead">Lead</SelectItem>
+                                <SelectItem value="prospect">Prospect</SelectItem>
                                 <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
-                                <SelectItem value="registered">Registered</SelectItem>
-                                <SelectItem value="dormant">Dormant</SelectItem>
-                                <SelectItem value="alumni">Alumni</SelectItem>
+                                <SelectItem value="renewal">In Renewal</SelectItem>
+                                <SelectItem value="lapsed">Lapsed/Dormant</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
                                 <SelectItem value="suspended">Suspended</SelectItem>
-                                <SelectItem value="inquiry">Inquiry (Stage 1)</SelectItem>
-                                <SelectItem value="application_submitted">App Submitted (Stage 2)</SelectItem>
-                                <SelectItem value="assessment_visit">Assessment (Stage 3)</SelectItem>
-                                <SelectItem value="under_review">Under Review (Stage 4)</SelectItem>
-                                <SelectItem value="accredited">Accredited (Stage 5)</SelectItem>
-                                <SelectItem value="renewal">Renewal (Stage 6)</SelectItem>
-                                <SelectItem value="lapsed">Lapsed (Stage 7)</SelectItem>
                             </SelectContent>
                         </Select>
                         <div className="relative flex-1 min-w-[200px] xl:max-w-md">

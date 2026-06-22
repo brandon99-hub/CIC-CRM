@@ -1,5 +1,5 @@
-// Shared types/constants for stakeholder dashboard components
-export const STAKEHOLDER_TYPES = ["student", "alumni", "institution", "employer", "corporate_partner", "government_agency", "media", "sponsor", "international_student", "vendor", "staff", "department", "other"] as const;
+// Shared types/constants for CIC Insurance stakeholder dashboard components
+export const STAKEHOLDER_TYPES = ["individual_policyholder", "sacco_cooperative", "corporate_client", "agent", "broker", "bancassurance_partner", "staff"] as const;
 export type StakeholderType = (typeof STAKEHOLDER_TYPES)[number];
 
 export interface Stakeholder {
@@ -18,7 +18,7 @@ export interface Stakeholder {
     county?: string;
     region?: string;
     country?: string;
-    registrationNumber?: string;
+    policyNumber?: string;              // e.g. CIC/MOTOR/2025/00123
     engagementScore: number;
     riskLevel: string;
     lifecycleStage: string;
@@ -35,13 +35,13 @@ export interface Stakeholder {
     tags?: string[];
     createdAt?: string;
     updatedAt?: string;
-    qualificationPathway?: string;
-    registrationExpiryDate?: string;
-    registrationHistory?: any[];
-    examinationHistory?: any[];
-    paymentHistory?: any[];
-    certificatesAwarded?: any[];
-    institutionAttachedTo?: string;
+    // CIC Insurance-specific fields
+    productLine?: string;               // motor | life | medical | property | marine | pension | group_life | micro_insurance
+    policyRenewalDate?: string;         // ISO date — triggers renewal automation
+    claimsHistory?: any[];              // [{ claimId, type, status, amount, date }]
+    policyHistory?: any[];              // [{ policyNumber, product, startDate, endDate, status }]
+    premiumPaymentHistory?: any[];      // [{ amount, date, method, reference }]
+    parentOrganization?: string;        // For agents/brokers: brokerage/agency name
 }
 
 export interface Interaction {

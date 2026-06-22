@@ -37,7 +37,7 @@ interface CaseItem {
     serviceCategoryId: string | null;
     stakeholderId?: string | null;
     stakeholderName?: string | null;
-    registrationNumber?: string | null;
+    policyNumber?: string | null;
     slaDeadline: string | null;
     slaResponseDeadline: string | null;
     slaMetricType?: string | null;
@@ -141,8 +141,8 @@ export function CaseList({
             doc.setFillColor(0, 78, 152);
             doc.rect(0, 0, 210, 8, 'F');
             
-            // Add Logo if available (assumes public/logo.png)
-            doc.addImage("/logo.png", "PNG", 14, 15, 25, 25);
+            // Add Logo if available (assumes public/logo.webp)
+            doc.addImage("/logo.webp", "WEBP", 14, 15, 25, 25);
         } catch (e) {
             console.warn("Logo failed to load for PDF:", e);
         }
@@ -175,7 +175,7 @@ export function CaseList({
         const tableColumn = ["Case #", "Title", "Department", "Assignee", "Status", "Priority", "Created"];
         const tableRows = cases.map(c => [
             c.caseNumber,
-            c.registrationNumber ? `${c.registrationNumber} - ${c.stakeholderName}` : (c.stakeholderName || c.title),
+            c.policyNumber ? `${c.policyNumber} - ${c.stakeholderName}` : (c.stakeholderName || c.title),
             c.departmentName || "Unassigned",
             c.assignedToName || "Unassigned",
             formatLabel(c.status),
@@ -376,7 +376,7 @@ export function CaseList({
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="truncate font-black text-gray-900 hover:text-[#004E98] transition-colors cursor-help">
-                                                            {c.registrationNumber ? `${c.registrationNumber} - ` : ""}{c.stakeholderName || c.title}
+                                                            {c.policyNumber ? `${c.policyNumber} - ` : ""}{c.stakeholderName || c.title}
                                                         </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent side="top" className="bg-white p-4 shadow-2xl border-gray-100 max-w-sm rounded-2xl ring-1 ring-black/5">

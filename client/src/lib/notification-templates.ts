@@ -29,7 +29,7 @@ export const NOTIFICATION_TEMPLATES = {
     </head>
     <body>
       <div class="container">
-        <img src="https://localhost:5173/logo.png" alt="KASNEB CRM" class="logo">
+        <img src="https://localhost:5173/logo.webp" alt="CIC CRM" class="logo">
         <div class="eyebrow">Marketing Intelligence</div>
         <h1 class="title">Activity Notification: \${activity.subject}</h1>
         <p class="content">This is a reminder for your scheduled \${activity.type}. Please ensure all relevant stakeholders are briefed and prepared for the engagement.</p>

@@ -16,7 +16,7 @@ interface Message {
 export function AiChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm your KASNEB AI Assistant. Ask me about general CRM FAQs or specific cases!" }
+    { role: "assistant", content: "Hi! I'm your CIC AI Assistant. Ask me about general CRM FAQs or specific cases!" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +80,7 @@ export function AiChatbot() {
           <CardHeader className="bg-[#004E98] text-white p-4 flex flex-row items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              <CardTitle className="text-sm font-bold tracking-wide uppercase">KASNEB AI Assistant</CardTitle>
+              <CardTitle className="text-sm font-bold tracking-wide uppercase">CIC AI Assistant</CardTitle>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white rounded-full" onClick={() => setIsOpen(false)}>
               <X className="h-4 w-4" />

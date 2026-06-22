@@ -27,7 +27,7 @@ export const StakeholderMatchingService = {
     async matchFromMetadata(metadata: Record<string, any>): Promise<string | null> {
         if (!metadata) return null;
 
-        const regNumber = metadata.student_id || metadata.registration_number || metadata.registrationNumber || null;
+        const regNumber = metadata.policy_number || metadata.policyNumber || null;
         const email = metadata.email || metadata.stakeholder_email || null;
         const fullName = metadata.full_name || metadata.marker_name || metadata.setter_name || metadata.contact_name || null;
 
@@ -35,7 +35,7 @@ export const StakeholderMatchingService = {
         if (regNumber) {
             const [matched] = await db.select({ id: stakeholders.id })
                 .from(stakeholders)
-                .where(eq(stakeholders.registrationNumber, regNumber))
+                .where(eq(stakeholders.policyNumber, regNumber))
                 .limit(1);
             if (matched) return matched.id;
         }
@@ -73,11 +73,11 @@ export const StakeholderMatchingService = {
      * Matches a stakeholder by a specific field value.
      * Useful for integrations that have a known identifier type.
      */
-    async matchByField(field: "email" | "registrationNumber" | "nationalId", value: string): Promise<string | null> {
+    async matchByField(field: "email" | "policyNumber" | "nationalId", value: string): Promise<string | null> {
         if (!value) return null;
 
         const column = field === "email" ? stakeholders.email
-            : field === "registrationNumber" ? stakeholders.registrationNumber
+            : field === "policyNumber" ? stakeholders.policyNumber
                 : stakeholders.nationalId;
 
         const [matched] = await db.select({ id: stakeholders.id })

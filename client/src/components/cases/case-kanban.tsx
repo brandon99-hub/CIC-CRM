@@ -38,7 +38,7 @@ interface CaseItem {
     slaResponseMinutes?: number;
     slaResolutionMinutes?: number;
     slaMetricType?: string;
-    registrationNumber?: string;
+    policyNumber?: string;
     stakeholderName?: string;
 }
 
@@ -230,7 +230,7 @@ function KanbanCard({ caseItem, onStatusChange, onClick, currentUserId }: {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <h4 className="text-[12px] font-black text-gray-900 leading-tight mb-4 group-hover:text-[#004E98] transition-colors line-clamp-1 uppercase tracking-tight cursor-help min-h-[16px]">
-                                {caseItem.registrationNumber || "GUEST"}: {caseItem.stakeholderName || "UNKNOWN"}
+                                {caseItem.policyNumber || "GUEST"}: {caseItem.stakeholderName || "UNKNOWN"}
                             </h4>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-[320px] p-4 rounded-2xl shadow-2xl border-none ring-1 ring-black/10 bg-white/98 backdrop-blur-xl z-[100]">

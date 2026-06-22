@@ -248,10 +248,10 @@ export default function DashboardHub() {
             <div className="w-8 h-8 bg-[#004E98] rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/10">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">KASNEB <span className="text-blue-600">CRM</span></span>
+            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">CIC <span className="text-blue-600">CRM</span></span>
           </div>
           <p className="text-xs text-slate-400 font-medium">
-            &copy; {new Date().getFullYear()} KASNEB Intelligence Systems. Optimized for high-performance administrative workflows.
+            &copy; {new Date().getFullYear()} CIC Insurance Group. Optimized for high-performance administrative workflows.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-xs font-black text-slate-400 hover:text-[#004E98] transition-colors uppercase tracking-widest">Help Center</a>

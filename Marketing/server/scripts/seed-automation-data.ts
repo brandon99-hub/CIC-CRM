@@ -1,35 +1,89 @@
-
+import "dotenv/config";
 import { db } from "../db";
 import { departments, systemRoles, serviceCategories, slaRules, escalationChains, escalationSteps, workflowRules } from "../../shared/adminSchema";
+import { marketingUsers } from "../../shared/schema";
 import { eq, and } from "drizzle-orm";
 
 async function seedAutomation() {
-    console.log("🌱 Starting automation seeding...");
+    console.log("🌱 Starting CIC Insurance automation seeding...");
 
     try {
-        // 1. Fetch Department IDs
+        // 1. Fetch Department IDs (seeded separately — these are CIC departments)
         const allDepts = await db.select().from(departments);
         const deptMap = new Map(allDepts.map(d => [d.code, d.id]));
 
-        const examDeptId = deptMap.get("EXAM");
-        const finDeptId = deptMap.get("FIN");
-        const regDeptId = deptMap.get("REG");
-        const genDeptId = deptMap.get("GEN");
+        const claimsDeptId = deptMap.get("CLAIMS");
+        const financeDeptId = deptMap.get("FINANCE");
+        const underwritingDeptId = deptMap.get("UNDERWRITING");
+        const customerCareDeptId = deptMap.get("CUSTOMER_CARE");
+        const salesDeptId = deptMap.get("SALES");
 
-        if (!examDeptId || !finDeptId) {
-            console.error("❌ Required departments (EXAM, FIN) not found. Please ensure departments are seeded first.");
-            return;
+        // Fallback: if CIC depts not yet seeded, try legacy codes as safety net
+        const fallbackDeptId = claimsDeptId || allDepts[0]?.id;
+
+        if (!claimsDeptId || !financeDeptId) {
+            console.warn("⚠️  CIC departments (CLAIMS, FINANCE) not found. Ensure departments are seeded first.");
         }
 
-        // 2. Seed Service Categories
-        console.log("Creating Service Categories...");
+        // 2. Seed CIC Insurance Service Categories
+        console.log("Creating CIC Service Categories...");
         const categories = [
-            { name: "Exam Appeal", code: "EXAM_APPEAL", description: "Student disputing an exam result", departmentId: examDeptId, defaultPriority: "high", keywords: ["appeal", "remark", "grade", "failed", "incorrect", "accounting", "law", "exam result"] },
-            { name: "Result Query", code: "RESULT_QUERY", description: "General query about exam results", departmentId: examDeptId, defaultPriority: "medium", keywords: ["when", "release", "dates", "query", "missing", "grade"] },
-            { name: "Fee Dispute", code: "FIN_DISPUTE", description: "Discrepancy in student account or fees", departmentId: finDeptId, defaultPriority: "high", keywords: ["balance", "m-pesa", "paid", "receipt", "wrong amount", "overcharge", "dispute"] },
-            { name: "Refund Request", code: "REFUND_REQ", description: "Request for fee refund", departmentId: finDeptId, defaultPriority: "medium", keywords: ["refund", "money back", "overpaid", "withdrawal"] },
-            { name: "Registration Issue", code: "REG_ISSUE", description: "Problem with student registration", departmentId: regDeptId, defaultPriority: "medium", keywords: ["register", "login", "portal", "password", "activation", "account"] },
-            { name: "General Enquiry", code: "GEN_ENQUIRY", description: "General walk-in or portal enquiry", departmentId: genDeptId, defaultPriority: "low", keywords: ["how", "where", "info", "help", "price", "cost"] },
+            {
+                name: "Claims Dispute",
+                code: "CLAIMS_DISPUTE",
+                description: "Client disputing a claims settlement decision or valuation",
+                departmentId: claimsDeptId || fallbackDeptId,
+                defaultPriority: "high"
+            },
+            {
+                name: "Claims Status Inquiry",
+                code: "CLAIMS_STATUS",
+                description: "General query on the status of a submitted claim",
+                departmentId: claimsDeptId || fallbackDeptId,
+                defaultPriority: "medium"
+            },
+            {
+                name: "Premium Dispute",
+                code: "PREMIUM_DISPUTE",
+                description: "Discrepancy in premium charged or M-PESA payment not reflected",
+                departmentId: financeDeptId || fallbackDeptId,
+                defaultPriority: "high"
+            },
+            {
+                name: "Claim Payout Request",
+                code: "CLAIM_PAYOUT",
+                description: "Request for processing or expediting a claim payout",
+                departmentId: financeDeptId || fallbackDeptId,
+                defaultPriority: "medium"
+            },
+            {
+                name: "Policy Enrollment Issue",
+                code: "POLICY_ENROLLMENT",
+                description: "Problem with new policy onboarding or cover activation",
+                departmentId: underwritingDeptId || fallbackDeptId,
+                defaultPriority: "medium"
+            },
+            {
+                name: "Policy Amendment Request",
+                code: "POLICY_AMENDMENT",
+                description: "Request to amend policy details — beneficiaries, coverage, endorsements",
+                departmentId: underwritingDeptId || fallbackDeptId,
+                defaultPriority: "medium"
+            },
+            {
+                name: "Renewal Notice",
+                code: "RENEWAL_NOTICE",
+                description: "Policy renewal inquiry, renewal quote request, or renewal processing",
+                departmentId: salesDeptId || fallbackDeptId,
+                defaultPriority: "medium"
+            },
+            {
+                name: "General Inquiry",
+                code: "GEN_INQUIRY",
+                description: "General walk-in, portal, or social inquiry about CIC products and services",
+                departmentId: customerCareDeptId || fallbackDeptId,
+                defaultPriority: "low"
+            },
         ];
 
         const insertedCategories = [];
@@ -40,17 +94,16 @@ async function seedAutomation() {
                 insertedCategories.push(res[0]);
                 console.log(`✅ Created category: ${cat.name}`);
             } else {
-                // Upsert: always update keywords on existing categories
                 const updated = await db.update(serviceCategories)
-                    .set({ keywords: cat.keywords, description: cat.description, defaultPriority: cat.defaultPriority } as any)
+                    .set({ description: cat.description, defaultPriority: cat.defaultPriority } as any)
                     .where(eq(serviceCategories.code, cat.code))
                     .returning();
                 insertedCategories.push(updated[0]);
-                console.log(`🔄 Updated keywords for: ${cat.name}`);
+                console.log(`🔄 Updated category details for: ${cat.name}`);
             }
         }
 
-        // Fetch ALL categories (including those seeded by other scripts) to ensure SLAs can be linked
+        // Fetch ALL categories in DB (including any seeded by other scripts)
         const dbCategories = await db.select().from(serviceCategories);
         const allAvailableCategories = [...dbCategories];
         console.log(`📊 Found ${allAvailableCategories.length} categories in database.`);
@@ -58,27 +111,7 @@ async function seedAutomation() {
         // 3. Seed SLA Rules
         console.log("Creating/Updating SLA Rules...");
 
-        // Map of category codes to their specific SLA requirements
-        const categorySlas = [
-            { catCode: "EXAM_MISSING", priority: "high", resp: 120, res: 1440, name: "Missing Results SLA" },
-            { catCode: "CERT_PROC", priority: "medium", resp: 240, res: 4320, name: "Certificate Process SLA" },
-            { catCode: "TRANS_REQ", priority: "low", resp: 240, res: 2880, name: "Transcript Request SLA" },
-            { catCode: "EXAM_DEFER", priority: "medium", resp: 120, res: 2880, name: "Exam Deferment SLA" },
-            { catCode: "INST_ACC", priority: "medium", resp: 1440, res: 20160, name: "Accreditation SLA" },
-            { catCode: "CERT_VERIF", priority: "medium", resp: 240, res: 1440, name: "Cert Verification SLA" },
-            { catCode: "FEE_STMT", priority: "medium", resp: 120, res: 1440, name: "Fee Statement SLA" },
-            { catCode: "REFUND_REQ", priority: "low", resp: 240, res: 7200, name: "Refund Request SLA" },
-            { catCode: "LEGAL_COMP", priority: "high", resp: 60, res: 7200, name: "Compliance/Legal SLA" },
-            { catCode: "MKT_SOCIAL", priority: "medium", resp: 30, res: 240, name: "Social Media SLA" },
-            { catCode: "FIN_DISPUTE", priority: "high", resp: 240, res: 1440, name: "Finance Dispute SLA" },
-            { catCode: "GEN_ENQUIRY", priority: "low", resp: 480, res: 2880, name: "General Enquiry SLA" },
-            { catCode: "RESULT_QUERY", priority: "medium", resp: 120, res: 480, name: "Result Query SLA" },
-            { catCode: "EXAM_APPEAL", priority: "critical", resp: 60, res: 240, name: "Urgent Exam Review SLA" }
-        ];
-
-        const insertedSlas = [];
-
-        // First, handle the generic priority-based SLAs as fallbacks
+        // Global priority fallback SLAs
         const genericSlas = [
             { name: "Global Critical SLA", priority: "critical", responseTimeMinutes: 60, resolutionTimeMinutes: 240 },
             { name: "Global High SLA", priority: "high", responseTimeMinutes: 120, resolutionTimeMinutes: 480 },
@@ -86,6 +119,7 @@ async function seedAutomation() {
             { name: "Global Low SLA", priority: "low", responseTimeMinutes: 480, resolutionTimeMinutes: 2880 },
         ];
 
+        const insertedSlas = [];
         for (const sla of genericSlas) {
             const existing = await db.select().from(slaRules).where(eq(slaRules.name, sla.name)).limit(1);
             if (existing.length === 0) {
@@ -98,7 +132,20 @@ async function seedAutomation() {
             }
         }
 
-        // Now, handle the category-specific SLAs
+        // Category-specific SLAs for CIC Insurance
+        const categorySlas = [
+            { catCode: "CLAIMS_DISPUTE",   priority: "critical", resp: 60,   res: 240,   name: "Claims Dispute Urgent SLA", metricType: "resolution_time" },
+            { catCode: "CLAIMS_STATUS",    priority: "medium",   resp: 120,  res: 480,   name: "Claims Status SLA", metricType: "first_response_time" },
+            { catCode: "PREMIUM_DISPUTE",  priority: "high",     resp: 120,  res: 1440,  name: "Premium Dispute SLA", metricType: "processing_time" },
+            { catCode: "CLAIM_PAYOUT",     priority: "medium",   resp: 240,  res: 4320,  name: "Claim Payout SLA", metricType: "delivery_time" },
+            { catCode: "POLICY_ENROLLMENT",priority: "medium",   resp: 240,  res: 2880,  name: "Policy Enrollment SLA", metricType: "resolution_time" },
+            { catCode: "POLICY_AMENDMENT", priority: "low",      resp: 240,  res: 2880,  name: "Policy Amendment SLA", metricType: "processing_time" },
+            { catCode: "RENEWAL_NOTICE",   priority: "medium",   resp: 120,  res: 2880,  name: "Renewal Notice SLA", metricType: "delivery_time" },
+            { catCode: "GEN_INQUIRY",      priority: "low",      resp: 480,  res: 2880,  name: "General Inquiry SLA", metricType: "first_response_time" },
+            { catCode: "LEGAL_COMP",       priority: "high",     resp: 60,   res: 7200,  name: "Compliance/Legal SLA", metricType: "resolution_time" },
+            { catCode: "MKT_SOCIAL",       priority: "medium",   resp: 30,   res: 240,   name: "Social Media SLA", metricType: "first_response_time" },
+        ];
+
         for (const spec of categorySlas) {
             const cat = allAvailableCategories.find(c => c.code === spec.catCode);
             if (!cat) {
@@ -111,6 +158,7 @@ async function seedAutomation() {
                 priority: spec.priority,
                 responseTimeMinutes: spec.resp,
                 resolutionTimeMinutes: spec.res,
+                metricType: spec.metricType,
                 serviceCategoryId: cat.id
             };
 
@@ -130,26 +178,26 @@ async function seedAutomation() {
         }
 
         // 4. Seed Escalation Chains & Steps
-        console.log("Creating Escalation Chains...");
-        const roles = await db.select().from(systemRoles);
-        const managerRole = roles.find(r => r.name === "Manager");
-        const adminRole = roles.find(r => r.name === "Admin");
+        console.log("Creating CIC Escalation Chains...");
+        
+        const allUsers = await db.select().from(marketingUsers);
+        const getStaff = (deptId: string | undefined) => allUsers.find(u => u.departmentId === deptId);
 
-        // Exams Escalation Chain
-        const examAppealCat = insertedCategories.find(c => c.code === "EXAM_APPEAL");
         const highSla = insertedSlas.find(s => s.priority === "high");
 
-        if (examAppealCat && highSla) {
-            const chainName = "Exams Appeal Escalation";
+        // Claims Dispute Escalation
+        const claimsDisputeCat = insertedCategories.find(c => c.code === "CLAIMS_DISPUTE");
+        if (claimsDisputeCat && highSla) {
+            const chainName = "Claims Dispute Escalation";
             let chain;
             const existingChain = await db.select().from(escalationChains).where(eq(escalationChains.name, chainName)).limit(1);
 
             if (existingChain.length === 0) {
                 const res = await db.insert(escalationChains).values({
                     name: chainName,
-                    serviceCategoryId: examAppealCat.id,
+                    serviceCategoryId: claimsDisputeCat.id,
                     slaId: highSla.id,
-                    priority: "high",
+                    priority: "critical",
                     isActive: true
                 } as any).returning();
                 chain = res[0];
@@ -159,10 +207,11 @@ async function seedAutomation() {
                 console.log(`ℹ️ Chain ${chainName} already exists.`);
             }
 
-            // Steps
+            const staff1 = getStaff(claimsDeptId);
+            const staff2 = allUsers.filter(u => u.departmentId === claimsDeptId)[1] || staff1;
             const steps = [
-                { chainId: chain.id, stepOrder: 1, assigneeRoleId: managerRole?.id, escalateAfterMinutes: 120, description: "Escalate to Exams Manager" },
-                { chainId: chain.id, stepOrder: 2, assigneeDepartmentId: examDeptId, escalateAfterMinutes: 480, description: "Escalate to Exams Department Head" }
+                { chainId: chain.id, stepOrder: 1, assigneeUserId: staff1?.id, escalateAfterMinutes: 60, description: "Escalate to Claims Specialist" },
+                { chainId: chain.id, stepOrder: 2, assigneeUserId: staff2?.id, assigneeDepartmentId: claimsDeptId, escalateAfterMinutes: 240, description: "Escalate to Claims Department Head" }
             ];
 
             for (const step of steps) {
@@ -174,17 +223,17 @@ async function seedAutomation() {
             }
         }
 
-        // Finance Escalation Chain
-        const finDisputeCat = insertedCategories.find(c => c.code === "FIN_DISPUTE");
-        if (finDisputeCat && highSla) {
-            const chainName = "Finance Dispute Escalation";
+        // Premium Dispute Escalation
+        const premiumDisputeCat = insertedCategories.find(c => c.code === "PREMIUM_DISPUTE");
+        if (premiumDisputeCat && highSla) {
+            const chainName = "Premium Dispute Escalation";
             let chain;
             const existingChain = await db.select().from(escalationChains).where(eq(escalationChains.name, chainName)).limit(1);
 
             if (existingChain.length === 0) {
                 const res = await db.insert(escalationChains).values({
                     name: chainName,
-                    serviceCategoryId: finDisputeCat.id,
+                    serviceCategoryId: premiumDisputeCat.id,
                     slaId: highSla.id,
                     priority: "high",
                     isActive: true
@@ -196,9 +245,11 @@ async function seedAutomation() {
                 console.log(`ℹ️ Chain ${chainName} already exists.`);
             }
 
+            const fStaff1 = getStaff(financeDeptId);
+            const fStaff2 = allUsers.filter(u => u.departmentId === financeDeptId)[1] || fStaff1;
             const steps = [
-                { chainId: chain.id, stepOrder: 1, assigneeRoleId: managerRole?.id, escalateAfterMinutes: 120, description: "Escalate to Finance Manager" },
-                { chainId: chain.id, stepOrder: 2, assigneeDepartmentId: finDeptId, escalateAfterMinutes: 480, description: "Escalate to Finance Department Head" }
+                { chainId: chain.id, stepOrder: 1, assigneeUserId: fStaff1?.id, escalateAfterMinutes: 120, description: "Escalate to Finance Analyst" },
+                { chainId: chain.id, stepOrder: 2, assigneeUserId: fStaff2?.id, assigneeDepartmentId: financeDeptId, escalateAfterMinutes: 480, description: "Escalate to Finance Department Head" }
             ];
 
             for (const step of steps) {
@@ -211,24 +262,33 @@ async function seedAutomation() {
         }
 
         // 5. Seed Workflow Rules
-        console.log("Creating Workflow Rules...");
+        console.log("Creating CIC Workflow Rules...");
         const workflows = [
             {
-                name: "Appeal Priority Auto-Set",
-                description: "Automatically set priority to high for exam appeals",
-                serviceCategoryId: examAppealCat?.id,
+                name: "Claims Dispute Priority Auto-Set",
+                description: "Automatically escalate priority to critical for all claims disputes",
+                serviceCategoryId: claimsDisputeCat?.id,
                 triggerEvent: "case_created",
-                conditions: [{ field: "service_category_id", operator: "eq", value: examAppealCat?.id }],
-                actions: [{ type: "set_priority", params: { priority: "high" } }],
+                conditions: [{ field: "service_category_id", operator: "eq", value: claimsDisputeCat?.id }],
+                actions: [{ type: "set_priority", params: { priority: "critical" } }],
                 isActive: true
             },
             {
-                name: "Finance Dispute Notification",
-                description: "Notify student when a finance dispute case is opened",
-                serviceCategoryId: finDisputeCat?.id,
+                name: "Premium Dispute Notification",
+                description: "Notify client when a premium dispute case is opened for transparency",
+                serviceCategoryId: premiumDisputeCat?.id,
                 triggerEvent: "case_created",
-                conditions: [{ field: "service_category_id", operator: "eq", value: finDisputeCat?.id }],
-                actions: [{ type: "send_notification", params: { value: "Kindly Pay Fees" } }],
+                conditions: [{ field: "service_category_id", operator: "eq", value: premiumDisputeCat?.id }],
+                actions: [{ type: "send_notification", params: { value: "Your premium dispute has been received. Our Finance team will contact you within 2 business hours." } }],
+                isActive: true
+            },
+            {
+                name: "Renewal Due Auto-Flag",
+                description: "Flag renewal cases as medium priority and route to Sales team automatically",
+                serviceCategoryId: insertedCategories.find(c => c.code === "RENEWAL_NOTICE")?.id,
+                triggerEvent: "case_created",
+                conditions: [{ field: "service_category_id", operator: "eq", value: insertedCategories.find(c => c.code === "RENEWAL_NOTICE")?.id }],
+                actions: [{ type: "assign_department", params: { departmentId: salesDeptId } }],
                 isActive: true
             }
         ];
@@ -243,9 +303,9 @@ async function seedAutomation() {
             }
         }
 
-        console.log("✨ Seeding completed successfully!");
+        console.log("✨ CIC Insurance automation seeding completed successfully!");
     } catch (error) {
-        console.error("❌ Error during seeding:", error);
+        console.error("❌ Error during CIC seeding:", error);
     }
 }
 

@@ -4,29 +4,41 @@ import { eq, and, or, sql, desc, gte, lte, count } from "drizzle-orm";
 import { subDays } from "date-fns";
 
 /**
- * SegmentationService
- * 
- * Evaluates stakeholders against dynamic rules to identify segments.
+ * SegmentationService — CIC Insurance Group
+ *
+ * Evaluates stakeholders against dynamic rules to produce segment flags.
  * Uses the composite model: Behavioral + Demographic + Lifecycle.
- * 
- * Segment Flags:
- *   - promoter:              Avg satisfaction ≥4, low escalation, no SLA breaches
- *   - detractor:             Avg satisfaction ≤2 OR high escalation OR SLA breaches
- *   - churn_risk:            Dormant/suspended with no recent interaction
- *   - exam_ready:            Student with exam sitting ≤60 days away
- *   - certification_pending: Student close to completing certification
+ *
+ * Retained generic flags (work for any CRM):
+ *   - promoter:         Avg satisfaction ≥4, low escalation, no SLA breaches
+ *   - detractor:        Avg satisfaction ≤2 OR high escalation OR SLA breaches
+ *   - churn_risk:       Dormant/suspended with no recent interaction
+ *
+ * CIC Insurance-specific flags:
+ *   - renewal_due:          Policy renewal date ≤ 60 days
+ *   - renewal_urgent:       Policy renewal date ≤ 14 days
+ *   - lapsed_policyholder:  Past renewal date > 30 days, stage = lapsed
+ *   - product_motor:        productLine === 'motor'
+ *   - product_life:         productLine === 'life'
+ *   - product_medical:      productLine === 'medical'
+ *   - product_property:     productLine === 'property'
+ *   - new_client:           Account age ≤ 30 days
+ *   - high_value:           Multiple active policies or long claims-free history
+ *   - sacco_partner:        type === 'sacco_cooperative', stage = scheme_active
+ *   - corporate_scheme:     type === 'corporate_client', stage = scheme_active
+ *   - agent_active:         type === 'agent', stage = active
+ *   - international:        country !== 'Kenya'
  */
 export const SegmentationService = {
     /**
-     * Evaluates a stakeholder for potential segmentation flags.
+     * Evaluates a stakeholder for all applicable CIC Insurance segment flags.
      */
     async evaluateStakeholder(stakeholderId: string) {
         console.log(`[Segmentation] Evaluating stakeholder: ${stakeholderId}`);
         const [s] = await db.select().from(stakeholders).where(eq(stakeholders.id, stakeholderId)).limit(1);
         if (!s) return;
 
-        // Skip anchor record types that don't need segmentation
-        const skipTypes = ["department", "organization"];
+        const skipTypes = ["department", "organization", "staff"];
         if (skipTypes.includes(s.type)) return;
 
         const flags: string[] = [];
@@ -40,10 +52,9 @@ export const SegmentationService = {
             createdAt: cases.createdAt,
         }).from(cases).where(eq(cases.stakeholderId, stakeholderId));
 
-        // Derive in-memory case metrics
         const totalCases = allCases.length;
         const ratedCases = allCases.filter(c => c.satisfactionRating !== null && c.satisfactionRating !== undefined);
-        
+
         const avgRating = ratedCases.length > 0
             ? ratedCases.reduce((sum, c) => sum + Number(c.satisfactionRating), 0) / ratedCases.length
             : null;
@@ -52,8 +63,11 @@ export const SegmentationService = {
         const escalatedRate = totalCases > 0 ? escalatedCaseCount / totalCases : 0;
         const slaBreachCount = allCases.filter(c => c.slaBreached).length;
 
-        // ── SEGMENT 2: seg:detractor ──
-        // (Evaluate first so mutual exclusion on promoter works correctly)
+        const accountAgeDays = (Date.now() - new Date(s.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+        const stage = s.lifecycleStage?.toLowerCase();
+        const metadata = s.metadata as any;
+
+        // ── SEGMENT: detractor (evaluate first for mutual exclusion) ──
         let isDetractor = false;
         if (
             (avgRating !== null && avgRating <= 2.0 && ratedCases.length >= 2) ||
@@ -64,29 +78,25 @@ export const SegmentationService = {
             isDetractor = true;
         }
 
-        // ── SEGMENT 1: seg:promoter ──
+        // ── SEGMENT: promoter ──
         if (!isDetractor && ratedCases.length >= 3) {
             if (avgRating !== null && avgRating >= 4.0 && escalatedRate < 0.15 && slaBreachCount === 0) {
                 flags.push("promoter");
             }
         }
 
-        // ── SEGMENT 3: seg:churn_risk ──
-        const stage = s.lifecycleStage?.toLowerCase();
-        const allowedStages = ["active", "dormant", "suspended"];
-        
-        if (allowedStages.includes(stage)) {
-            // Signal A - Interaction decay: Last interaction > 60d or none
+        // ── SEGMENT: churn_risk ──
+        const churnStages = ["active", "lapsed", "suspended", "onboarded", "scheme_active"];
+        if (churnStages.includes(stage)) {
             const sixtyDaysAgo = subDays(new Date(), 60).toISOString();
             const [lastInt] = await db.select()
                 .from(stakeholderInteractions)
                 .where(eq(stakeholderInteractions.stakeholderId, stakeholderId))
                 .orderBy(desc(stakeholderInteractions.date))
                 .limit(1);
-            
+
             const signalA = !lastInt || lastInt.date < sixtyDaysAgo;
 
-            // Signal B - Case friction: At least 1 unresolved case open > 72 hours
             const signalB = allCases.some(c => {
                 const isOpen = ["open", "in_progress", "pending", "escalated"].includes(c.status);
                 if (!isOpen) return false;
@@ -94,7 +104,6 @@ export const SegmentationService = {
                 return ageMs > 72 * 60 * 60 * 1000;
             });
 
-            // Signal C - Satisfaction decline: Average of last 3 rated cases ≤ 2.5
             const sortedRatedCases = [...ratedCases].sort(
                 (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
@@ -102,87 +111,87 @@ export const SegmentationService = {
             const avgRecentRating = recentRated.length > 0
                 ? recentRated.reduce((sum, c) => sum + Number(c.satisfactionRating), 0) / recentRated.length
                 : null;
-            
+
             const signalC = avgRecentRating !== null && avgRecentRating <= 2.5;
 
-            // Count signals
             let signalCount = 0;
             if (signalA) signalCount++;
             if (signalB) signalCount++;
             if (signalC) signalCount++;
 
-            const requiredSignals = (stage === "dormant" || stage === "suspended") ? 1 : 2;
+            const requiredSignals = (stage === "lapsed" || stage === "suspended") ? 1 : 2;
             if (signalCount >= requiredSignals) {
                 flags.push("churn_risk");
             }
         }
 
-        // ── SEGMENT 4: seg:exam_ready ──
-        const metadata = s.metadata as any;
-        if (s.type === "student" && metadata?.exam_sitting && stage === "active") {
-            const sittingDate = new Date(metadata.exam_sitting);
-            if (!isNaN(sittingDate.getTime())) {
-                const daysUntil = (sittingDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-                if (daysUntil > 0 && daysUntil <= 60) {
-                    flags.push("exam_ready");
-                    if (daysUntil <= 14) {
-                        flags.push("exam_critical");
+        // ── SEGMENT: renewal_due / renewal_urgent ──
+        if (s.policyRenewalDate && ["individual_policyholder", "sacco_cooperative", "corporate_client"].includes(s.type)) {
+            const renewalDate = new Date(s.policyRenewalDate);
+            if (!isNaN(renewalDate.getTime())) {
+                const daysUntilRenewal = (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+                if (daysUntilRenewal > 0 && daysUntilRenewal <= 60) {
+                    flags.push("renewal_due");
+                    if (daysUntilRenewal <= 14) {
+                        flags.push("renewal_urgent");
                     }
                 }
             }
         }
 
-        // ── SEGMENT 5: seg:certification_pending ──
-        const accountAgeDays = (Date.now() - new Date(s.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-        if (
-            s.type === "student" &&
-            stage === "registered" &&
-            accountAgeDays > 730 &&
-            metadata?.current_part !== undefined &&
-            Number(metadata.current_part) >= 3 &&
-            !flags.includes("exam_ready")
-        ) {
-            flags.push("certification_pending");
-            if (metadata.exams_passed !== undefined && Number(metadata.exams_passed) >= 6) {
-                flags.push("near_completion");
+        // ── SEGMENT: lapsed_policyholder ──
+        if (s.type === "individual_policyholder" && stage === "lapsed" && s.policyRenewalDate) {
+            const renewalDate = new Date(s.policyRenewalDate);
+            const daysPastRenewal = (Date.now() - renewalDate.getTime()) / (1000 * 60 * 60 * 24);
+            if (daysPastRenewal > 30) {
+                flags.push("lapsed_policyholder");
             }
         }
 
-        // ── SEGMENT 6: Kasneb Qualifications ──
-        if (["student", "international_student", "alumni"].includes(s.type) && s.qualificationPathway) {
-            const pathway = s.qualificationPathway.toLowerCase().trim();
-            const validPathways = ["cams", "atd", "dcnsa", "ddma", "dqm", "cpa", "cs", "cifa", "ccp", "cisse", "cqp", "cffe", "cpfm"];
-            if (validPathways.includes(pathway)) {
-                flags.push(`qual_${pathway}`);
+        // ── SEGMENT: product line flags ──
+        if (s.productLine) {
+            const line = s.productLine.toLowerCase().trim();
+            const validLines = ["motor", "life", "medical", "property", "marine", "pension", "group_life", "micro_insurance"];
+            if (validLines.includes(line)) {
+                flags.push(`product_${line}`);
             }
         }
 
-        // ── SEGMENT 7: International Students ──
-        if (s.type === "student" && s.country && s.country.toLowerCase() !== "kenya") {
+        // ── SEGMENT: new_client ──
+        if (["individual_policyholder", "sacco_cooperative", "corporate_client"].includes(s.type) && accountAgeDays <= 30) {
+            flags.push("new_client");
+        }
+
+        // ── SEGMENT: high_value ──
+        const policyHistory = (s.policyHistory as any[] || []);
+        const activePolicies = policyHistory.filter((p: any) => p.status === "Active").length;
+        const claimsHistory = (s.claimsHistory as any[] || []);
+        const claimsCount = claimsHistory.length;
+        if (activePolicies >= 2 || (claimsCount === 0 && accountAgeDays > 365)) {
+            flags.push("high_value");
+        }
+
+        // ── SEGMENT: sacco_partner ──
+        if (s.type === "sacco_cooperative" && stage === "scheme_active") {
+            flags.push("sacco_partner");
+        }
+
+        // ── SEGMENT: corporate_scheme ──
+        if (s.type === "corporate_client" && stage === "scheme_active") {
+            flags.push("corporate_scheme");
+        }
+
+        // ── SEGMENT: agent_active ──
+        if (s.type === "agent" && stage === "active") {
+            flags.push("agent_active");
+        }
+
+        // ── SEGMENT: international ──
+        if (s.country && s.country.toLowerCase() !== "kenya") {
             flags.push("international");
         }
 
-        // ── SEGMENT 8: New Registrants ──
-        if (s.type === "student" && accountAgeDays <= 30) {
-            flags.push("new_registrant");
-        }
-
-        // ── SEGMENT 9: Dormant Students ──
-        if (s.type === "student" && stage === "dormant") {
-            flags.push("dormant");
-        }
-
-        // ── SEGMENT 10: Accredited Institutions ──
-        if (s.type === "institution" && stage === "accredited") {
-            flags.push("accredited_institution");
-        }
-
-        // ── SEGMENT 11: Employers ──
-        if (s.type === "employer") {
-            flags.push("employer");
-        }
-
-        console.log(`[Segmentation] Flags for ${stakeholderId}:`, flags);
+        console.log(`[Segmentation] CIC flags for ${stakeholderId}:`, flags);
 
         // ── Update stakeholder tags ──
         const existingTags = s.tags as string[] || [];

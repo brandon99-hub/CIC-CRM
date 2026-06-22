@@ -65,8 +65,8 @@ export const stakeholders = pgTable("stakeholders", {
   region: text("region"),
   country: text("country").default("Kenya").notNull(),
   address: text("address"),
-  registrationNumber: text("registration_number"),
-  nationalId: text("national_id"), // Encrypted (AES-256-GCM) per DPA 2019
+  policyNumber: text("policy_number"),          // e.g. CIC/MOTOR/2025/00123
+  nationalId: text("national_id"),               // Encrypted (AES-256-GCM) per DPA 2019
   gender: text("gender"),
   dateOfBirth: text("date_of_birth"),
   engagementScore: integer("engagement_score").default(0).notNull(),
@@ -89,20 +89,19 @@ export const stakeholders = pgTable("stakeholders", {
   consentDate: text("consent_date"),
   consentPurpose: text("consent_purpose"),
   dataRetentionExpiry: text("data_retention_expiry"),
-  qualificationPathway: text("qualification_pathway"),
-  registrationHistory: jsonb("registration_history").default([]).notNull(),
-  registrationExpiryDate: text("registration_expiry_date"),
-  examinationHistory: jsonb("examination_history").default([]).notNull(),
-  paymentHistory: jsonb("payment_history").default([]).notNull(),
-  certificatesAwarded: jsonb("certificates_awarded").default([]).notNull(),
-  institutionAttachedTo: text("institution_attached_to"),
+  // CIC Insurance-specific fields
+  productLine: text("product_line"),             // motor | life | medical | property | marine | pension | micro_insurance | group_life | other
+  policyRenewalDate: text("policy_renewal_date"), // ISO date string — triggers renewal automation
+  claimsHistory: jsonb("claims_history").default([]).notNull(),         // Array of { claimId, type, status, amount, date }
+  policyHistory: jsonb("policy_history").default([]).notNull(),          // Array of { policyNumber, product, startDate, endDate, status }
+  premiumPaymentHistory: jsonb("premium_payment_history").default([]).notNull(), // Array of { amount, date, method, reference }
+  parentOrganization: text("parent_organization"), // For agents/brokers: their brokerage/agency name
   createdAt: text("created_at").default(sql`now()`).notNull(),
   updatedAt: text("updated_at").default(sql`now()`).notNull(),
 }, (table) => ({
   typeIdx: index("stakeholder_type_idx").on(table.type),
   emailIdx: index("stakeholder_email_idx").on(table.email),
   orgIdx: index("stakeholder_organization_idx").on(table.organization),
-  regIdx: index("stakeholder_registration_idx").on(table.registrationNumber),
 }));
 
 export const stakeholderInteractions = pgTable("stakeholder_interactions", {
@@ -250,25 +249,7 @@ export const caseUserNotes = pgTable("case_user_notes", {
   caseUserIdx: index("case_user_notes_case_user_idx").on(table.caseId, table.userId),
 }));
 
-export const accreditationProcesses = pgTable("accreditation_processes", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  stakeholderId: uuid("stakeholder_id").notNull(),
-  stage: text("stage").default("inquiry").notNull(), // inquiry, application_submitted, assessment_visit, under_review, active_partner, renewal, lapsed
-  status: text("status").default("pending").notNull(),
-  assignedOfficerId: uuid("assigned_officer_id"),
-  applicationDate: text("application_date"),
-  assessmentDate: text("assessment_date"),
-  decisionDate: text("decision_date"),
-  renewalDate: text("renewal_date"),
-  slaDeadline: text("sla_deadline"), // 90-day clock
-  notes: text("notes"),
-  metadata: jsonb("metadata").default({}).notNull(),
-  createdAt: text("created_at").default(sql`now()`).notNull(),
-  updatedAt: text("updated_at").default(sql`now()`).notNull(),
-}, (table) => ({
-  stakeholderIdx: index("accreditation_stakeholder_idx").on(table.stakeholderId),
-  stageIdx: index("accreditation_stage_idx").on(table.stage),
-}));
+// accreditationProcesses table removed — CIC Insurance does not perform institutional accreditation.
 
 
 

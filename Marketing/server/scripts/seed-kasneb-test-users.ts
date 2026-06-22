@@ -8,51 +8,53 @@ import bcrypt from "bcryptjs";
 async function seedUsers() {
     console.log("Starting user seeding...");
 
-    const password = "Exlifes_69";
+    const password = "Temp_pass_69";
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const allDepts = await db.select().from(departments);
-    const mktDept = allDepts.find((d: any) => d.code === "MRK");
-    if (!mktDept) {
-        console.warn("Marketing department (MRK) not found. Please create it manually first.");
+    if (allDepts.length === 0) {
+        console.warn("No departments found. Please run automation seed first.");
+        return;
     }
 
-    const marketingUserNames = [
-        { first: "John", last: "D" }, { first: "Mary", last: "K" },
-        { first: "Robert", last: "O" }, { first: "Jennifer", last: "M" },
-        { first: "Michael", last: "W" }, { first: "Linda", last: "A" }
-    ];
+    const firstNames = ["John", "Mary", "Robert", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy"];
+    const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"];
+    
+    let userCounter = 1;
+    for (const dept of allDepts) {
+        console.log(`Seeding 3 users for department: ${dept.code} - ${dept.name}`);
+        for (let i = 0; i < 3; i++) {
+            const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const email = `${first.toLowerCase()}.${last.toLowerCase()}${userCounter}@cic.co.ke`;
+            const phone = `+254 7${Math.floor(Math.random() * 90000000 + 10000000)}`;
 
-    // 2. Create/Update 6 Marketing users
-    for (let i = 0; i < 6; i++) {
-        const index = i + 16;
-        const email = `test${index}@gmail.com`;
-        const nameData = marketingUserNames[i];
+            const userData = {
+                email,
+                password: hashedPassword,
+                firstName: first,
+                lastName: last,
+                phoneNumber: phone,
+                role: "user",
+                departmentId: dept.id,
+                mustChangePassword: false,
+                dashboardAccess: JSON.stringify(["marketing", "cases"])
+            };
 
-        // Check if user exists
-        const existing = await db.select().from(marketingUsers).where(eq(marketingUsers.email, email)).limit(1);
+            const existing = await db.select().from(marketingUsers).where(eq(marketingUsers.email, email)).limit(1);
 
-        const userData = {
-            email,
-            password: hashedPassword,
-            firstName: nameData.first,
-            lastName: nameData.last,
-            role: "marketer",
-            departmentId: mktDept?.id,
-            mustChangePassword: false,
-            dashboardAccess: JSON.stringify(["marketing"])
-        };
-
-        if (existing.length === 0) {
-            await db.insert(marketingUsers).values(userData as any).returning();
-            console.log(`Created Marketing user: ${email} (${nameData.first} ${nameData.last})`);
-        } else {
-            await db.update(marketingUsers).set(userData as any).where(eq(marketingUsers.id, existing[0].id));
-            console.log(`Updated Marketing user: ${email} (${nameData.first} ${nameData.last})`);
+            if (existing.length === 0) {
+                await db.insert(marketingUsers).values(userData as any).returning();
+                console.log(`  -> Created: ${email} (${first} ${last}) [${dept.code}]`);
+            } else {
+                await db.update(marketingUsers).set(userData as any).where(eq(marketingUsers.id, existing[0].id));
+                console.log(`  -> Updated: ${email} (${first} ${last}) [${dept.code}]`);
+            }
+            userCounter++;
         }
     }
 
-    console.log("Marketing User Seeding completed successfully.");
+    console.log("CIC User Seeding completed successfully.");
     process.exit(0);
 }
 

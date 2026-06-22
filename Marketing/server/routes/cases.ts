@@ -229,8 +229,7 @@ export function registerCaseRoutes(app: Express) {
           tags: cases.tags,
           description: cases.description,
           stakeholderId: cases.stakeholderId,
-          stakeholderName: sql<string>`${stakeholders.firstName} || ' ' || ${stakeholders.lastName}`,
-          registrationNumber: stakeholders.registrationNumber
+          stakeholderName: sql<string>`${stakeholders.firstName} || ' ' || ${stakeholders.lastName}`
         })
           .from(cases)
           .leftJoin(marketingUsers, eq(cases.assignedTo, marketingUsers.id))
@@ -402,7 +401,6 @@ export function registerCaseRoutes(app: Express) {
           description: cases.description,
           assignedUserName: sql<string>`${marketingUsers.firstName} || ' ' || ${marketingUsers.lastName}`,
           departmentName: departments.name,
-          registrationNumber: stakeholders.registrationNumber,
           stakeholderFirstName: stakeholders.firstName,
           stakeholderLastName: stakeholders.lastName
         })
@@ -972,27 +970,7 @@ export function registerCaseRoutes(app: Express) {
           data.serviceCategoryId = cat[0].id;
           data.metadata = { ...data.metadata, aiRouted: true, aiConfidence: aiResult.confidenceScore, isAi: aiResult.isAi };
 
-          // Accreditation Workflow
-          if (aiResult.categoryName.toLowerCase().includes("accreditation")) {
-            data.status = "open";
-            
-            // Start the 90-day SLA
-            const ninetyDaysFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
-            data.slaDeadline = ninetyDaysFromNow;
 
-            // Trigger email acknowledgment via metadata if email exists
-            const email = data.metadata?.contactEmail || data.metadata?.email;
-            if (email) {
-              emailService.sendEmail({
-                to: email,
-                subject: `KASNEB Accreditation Application Acknowledged - ${caseNumber}`,
-                text: "Your application for KASNEB accreditation has been successfully received and an Accreditation Review Officer will be assigned shortly.",
-                html: "<p>Your application for KASNEB accreditation has been successfully received and an Accreditation Review Officer will be assigned shortly.</p>"
-              }).catch(e => console.error("Failed to send ack email", e));
-            }
-
-            data.metadata.isAccreditationAutoRoute = true;
-          }
         }
       }
 
@@ -1104,18 +1082,7 @@ export function registerCaseRoutes(app: Express) {
       if (newCase[0]) {
         triageLeadFromCase(newCase[0].id).catch(e => console.error("Lead triage failed:", e));
         
-        // Create Accreditation Process if routed
-        if ((newCase[0].metadata as any)?.isAccreditationAutoRoute && newCase[0].stakeholderId) {
-          const { accreditationProcesses } = await import("../../shared/crmSchema");
-          await db.insert(accreditationProcesses).values({
-            stakeholderId: newCase[0].stakeholderId,
-            stage: "application_submitted",
-            status: "pending",
-            applicationDate: new Date().toISOString(),
-            slaDeadline: newCase[0].slaDeadline,
-            assignedOfficerId: newCase[0].assignedTo
-          } as any).catch(e => console.error("Failed to create accreditation process:", e));
-        }
+
       }
 
       await db.insert(caseHistory).values({
@@ -1655,15 +1622,12 @@ export function registerCaseRoutes(app: Express) {
           updatedAt: knowledgeBase.updatedAt,
           categoryName: serviceCategories.name,
           departmentName: departments.name,
-          stakeholderName: sql<string>`${stakeholders.firstName} || ' ' || ${stakeholders.lastName}`,
-          registrationNumber: stakeholders.registrationNumber,
           caseNumber: cases.caseNumber
         })
         .from(knowledgeBase)
         .leftJoin(serviceCategories, eq(knowledgeBase.serviceCategoryId, serviceCategories.id))
         .leftJoin(departments, eq(serviceCategories.departmentId, departments.id))
         .leftJoin(cases, eq(knowledgeBase.sourceCaseId, cases.id))
-        .leftJoin(stakeholders, eq(cases.stakeholderId, stakeholders.id))
         .where(whereClause || sql`true`)
         .orderBy(desc(knowledgeBase.createdAt));
 
@@ -2053,7 +2017,7 @@ export function registerCaseRoutes(app: Express) {
         .select({
           id: cases.id,
           caseNumber: cases.caseNumber,
-          title: sql<string>`'[' || ${stakeholders.registrationNumber} || '] ' || ${stakeholders.firstName} || ' ' || ${stakeholders.lastName} `,
+          title: sql<string>`${stakeholders.firstName} || ' ' || ${stakeholders.lastName}`,
           status: cases.status,
           updatedAt: cases.updatedAt,
           assignedTo: cases.assignedTo,
@@ -2063,7 +2027,7 @@ export function registerCaseRoutes(app: Express) {
         .innerJoin(caseComments, eq(caseComments.caseId, cases.id))
         .leftJoin(stakeholders, eq(cases.stakeholderId, stakeholders.id))
         .where(and(eq(caseComments.isInternal, true), ...rbacConditions))
-        .groupBy(cases.id, stakeholders.registrationNumber, stakeholders.firstName, stakeholders.lastName)
+        .groupBy(cases.id, stakeholders.firstName, stakeholders.lastName)
         .orderBy(desc(sql`MAX(${caseComments.createdAt})`));
 
       const discussions = await Promise.all(results.map(async (c) => {

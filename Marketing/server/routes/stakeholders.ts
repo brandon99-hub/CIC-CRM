@@ -247,7 +247,7 @@ export function registerStakeholderRoutes(app: Express) {
             ilike(stakeholders.lastName, `%${s}%`),
             ilike(stakeholders.email, `%${s}%`),
             ilike(stakeholders.organization, `%${s}%`),
-            ilike(stakeholders.registrationNumber, `%${s}%`)
+            ilike(stakeholders.policyNumber, `%${s}%`)
           )
         );
       }
@@ -265,7 +265,7 @@ export function registerStakeholderRoutes(app: Express) {
           organization: stakeholders.organization,
           designation: stakeholders.designation,
           county: stakeholders.county,
-          registrationNumber: stakeholders.registrationNumber,
+          policyNumber: stakeholders.policyNumber,
           engagementScore: stakeholders.engagementScore,
           riskLevel: stakeholders.riskLevel,
           lifecycleStage: stakeholders.lifecycleStage,

@@ -72,22 +72,18 @@ export default function StakeholderDashboard() {
   const relPageSize = 10;
   const [relSearchQuery, setRelSearchQuery] = useState("");
   const [relFilterType, setRelFilterType] = useState("all");
-  const [relSubTab, setRelSubTab] = useState("connections");
-  const [segPage, setSegPage] = useState(1);
-  const [segSearchQuery, setSegSearchQuery] = useState("");
 
   // Modals
   const [stakeholderModalOpen, setStakeholderModalOpen] = useState(false);
   const [stakeholderForm, setStakeholderForm] = useState({
-    name: "", type: "student" as StakeholderType, email: "", phone: "",
+    name: "", type: "individual_policyholder" as StakeholderType, email: "", phone: "",
     organization: "", address: "", notes: "", riskLevel: "low",
     lifecycleStage: "active", preferredLanguage: "English", communicationFrequency: "As needed",
     accountId: "",
     metadata: {
-      exam_sitting: "",
-      study_center: "",
-      accreditation_expiry: "",
-      programme_enrolled: ""
+      product_line: "",
+      renewal_date: "",
+      industry: ""
     } as Record<string, any>
   });
 
@@ -194,12 +190,12 @@ export default function StakeholderDashboard() {
     stakeholders: any[],
     pagination: { total: number, page: number, totalPages: number }
   }>({
-    queryKey: ["stakeholders", "segments", { segPage, segSearchQuery }],
+    queryKey: ["stakeholders", "segments", { relSearchQuery }],
     queryFn: async () => {
       const params = new URLSearchParams();
-      params.set("page", segPage.toString());
-      params.set("limit", "10");
-      if (segSearchQuery) params.set("search", segSearchQuery);
+      params.set("page", "1");
+      params.set("limit", "100"); // Use larger limit so accordion has data to group
+      if (relSearchQuery) params.set("search", relSearchQuery);
       const res = await apiRequest(`/api/stakeholders/segments?${params}`);
       return res.json();
     },
@@ -254,7 +250,7 @@ export default function StakeholderDashboard() {
       toast({ title: "Success", description: "Stakeholder created successfully." });
       setStakeholderModalOpen(false);
       setStakeholderForm({
-        name: "", type: "student", email: "", phone: "", organization: "", address: "", notes: "", riskLevel: "low",
+        name: "", type: "individual_policyholder", email: "", phone: "", organization: "", address: "", notes: "", riskLevel: "low",
         lifecycleStage: "active", preferredLanguage: "English", communicationFrequency: "As needed", accountId: "",
         metadata: {}
       });
@@ -331,7 +327,7 @@ export default function StakeholderDashboard() {
     const orgs = new Set<string>();
     allStakeholdersList.forEach(s => {
       if (s.organization) orgs.add(s.organization);
-      if (s.name && (s.type === "institution" || s.type === "employer")) orgs.add(s.name);
+      if (s.name && (s.type === "corporate_client" || s.type === "sacco_cooperative")) orgs.add(s.name);
     });
     return Array.from(orgs).sort();
   }, [allStakeholdersList]);
@@ -354,7 +350,6 @@ export default function StakeholderDashboard() {
       title: "Management",
       items: [
         { id: "stakeholders", label: "Stakeholders", icon: Users },
-        { id: "accreditation", label: "Accreditation", icon: CheckCircle2 },
       ],
     },
     {
@@ -372,7 +367,6 @@ export default function StakeholderDashboard() {
     profile: "Comprehensive 360° view of stakeholder data",
     interactions: "Communication history and case-based interactions",
     relationships: "Visualize and manage stakeholder connections",
-    accreditation: "Manage institutional accreditation pipeline",
   };
 
   const renderContent = () => {
@@ -430,45 +424,17 @@ export default function StakeholderDashboard() {
       case "relationships":
         return (
           <RelationshipsTab
-            relationships={allRelationships}
-            loading={relationshipsLoading}
-            total={totalRelationships}
-            page={relPage}
-            totalPages={relationshipsTotalPages}
-            onPageChange={setRelPage}
             searchQuery={relSearchQuery}
-            onSearchChange={(v) => { setRelSearchQuery(v); setRelPage(1); }}
+            onSearchChange={setRelSearchQuery}
             typeFilter={relFilterType}
-            onTypeFilterChange={(v) => { setRelFilterType(v); setRelPage(1); }}
+            onTypeFilterChange={setRelFilterType}
             segments={segmentsData || []}
             segmentsLoading={segmentsLoading}
-            segPage={segPage}
-            segTotalPages={segmentsTotalPages}
-            onSegPageChange={setSegPage}
-            segSearchQuery={segSearchQuery}
-            onSegSearchChange={setSegSearchQuery}
-            activeSubTab={relSubTab}
-            onSubTabChange={setRelSubTab}
             onViewProfile={viewStakeholderProfile}
           />
 
         );
-      case "accreditation":
-        return (
-          <div className="p-6">
-            <AccreditationKanban
-              processes={accreditationData?.processes || []}
-              isLoading={accreditationLoading}
-              onStageChange={(id, newStage) => updateProcessStageMutation.mutate({ id, stage: newStage })}
-              onProcessClick={(id) => {
-                const process = accreditationData?.processes.find(p => p.id === id);
-                if (process) {
-                  viewStakeholderProfile(process.stakeholderId);
-                }
-              }}
-            />
-          </div>
-        );
+
       default: return null;
     }
   };
@@ -476,8 +442,8 @@ export default function StakeholderDashboard() {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="Stakeholder Intelligence"
+      title="CIC CRM"
+      subtitle="STAKEHOLDER DIRECTORY"
       navGroups={navGroups}
       activeTab={activeTab}
       setActiveTab={(tab) => {
@@ -594,7 +560,7 @@ export default function StakeholderDashboard() {
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-gray-100 shadow-xl max-h-[300px]">
                       <SelectItem value="none" className="font-bold py-3 text-gray-400">Independent / None</SelectItem>
-                      {allStakeholdersList.filter(s => s.type === "institution").map((inst) => (
+                      {allStakeholdersList.filter(s => s.type === "corporate_client" || s.type === "sacco_cooperative").map((inst) => (
                         <SelectItem key={inst.id} value={inst.id} className="font-bold py-3">{inst.organization || inst.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -607,22 +573,12 @@ export default function StakeholderDashboard() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-gray-100 shadow-xl">
-                      {stakeholderForm.type === "student" || stakeholderForm.type === "international_student" ? (
+                      {stakeholderForm.type === "individual_policyholder" || stakeholderForm.type === "sacco_cooperative" || stakeholderForm.type === "corporate_client" ? (
                         <>
-                          <SelectItem value="registered" className="font-bold py-3 text-sky-600">Registered</SelectItem>
-                          <SelectItem value="alumni" className="font-bold py-3 text-[#004E98]">Alumni</SelectItem>
-                          <SelectItem value="suspended" className="font-bold py-3 text-orange-500">Suspended</SelectItem>
-                          <SelectItem value="dormant" className="font-bold py-3 text-slate-500">Dormant</SelectItem>
-                        </>
-                      ) : stakeholderForm.type === "institution" ? (
-                        <>
-                          <SelectItem value="inquiry" className="font-bold py-3 text-blue-600">Inquiry (Stage 1)</SelectItem>
-                          <SelectItem value="application_submitted" className="font-bold py-3 text-indigo-600">App Submitted (Stage 2)</SelectItem>
-                          <SelectItem value="assessment_visit" className="font-bold py-3 text-amber-600">Assessment (Stage 3)</SelectItem>
-                          <SelectItem value="under_review" className="font-bold py-3 text-orange-600">Under Review (Stage 4)</SelectItem>
-                          <SelectItem value="accredited" className="font-bold py-3 text-emerald-600">Accredited (Stage 5)</SelectItem>
-                          <SelectItem value="renewal" className="font-bold py-3 text-teal-600">Renewal (Stage 6)</SelectItem>
-                          <SelectItem value="lapsed" className="font-bold py-3 text-red-600">Lapsed (Stage 7)</SelectItem>
+                          <SelectItem value="active" className="font-bold py-3 text-emerald-600">Active Policy</SelectItem>
+                          <SelectItem value="lapsed" className="font-bold py-3 text-red-600">Lapsed Policy</SelectItem>
+                          <SelectItem value="scheme_active" className="font-bold py-3 text-blue-600">Active Scheme</SelectItem>
+                          <SelectItem value="onboarded" className="font-bold py-3 text-sky-600">Onboarded</SelectItem>
                         </>
                       ) : (
                         <>
@@ -691,77 +647,30 @@ export default function StakeholderDashboard() {
                 <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#D0AC01]">Custom Information</span>
               </div>
               <div className="p-6 bg-[#D0AC01]/5 rounded-2xl border border-[#D0AC01]/10 grid grid-cols-2 gap-8">
-                {stakeholderForm.type === "student" && (
+                {(stakeholderForm.type === "individual_policyholder" || stakeholderForm.type === "sacco_cooperative" || stakeholderForm.type === "corporate_client") && (
                   <>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Programme Enrolled</Label>
+                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Product Line</Label>
                       <Input
-                        value={stakeholderForm.metadata.programme_enrolled || ""}
-                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, programme_enrolled: e.target.value } })}
-                        placeholder="e.g. CPA Section 6"
+                        value={stakeholderForm.metadata.product_line || ""}
+                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, product_line: e.target.value } })}
+                        placeholder="e.g. Motor Comprehensive"
                         className="h-12 font-bold bg-white border-0 rounded-xl px-4"
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Exam Sitting</Label>
-                      <Select
-                        value={stakeholderForm.metadata.exam_sitting || ""}
-                        onValueChange={(v) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, exam_sitting: v } })}
-                      >
-                        <SelectTrigger className="h-12 font-bold bg-white border-0 rounded-xl px-4">
-                          <SelectValue placeholder="Select sitting" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="Aug 2025" className="font-bold">Aug 2025</SelectItem>
-                          <SelectItem value="Dec 2025" className="font-bold">Dec 2025</SelectItem>
-                          <SelectItem value="Apr 2026" className="font-bold">Apr 2026</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Study Center</Label>
-                      <Input
-                        value={stakeholderForm.metadata.study_center || ""}
-                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, study_center: e.target.value } })}
-                        placeholder="e.g. Strathmore"
-                        className="h-12 font-bold bg-white border-0 rounded-xl px-4"
-                      />
-                    </div>
-
-                  </>
-                )}
-
-                {stakeholderForm.type === "institution" && (
-                  <>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Accreditation Expiry</Label>
+                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Policy Renewal Date</Label>
                       <Input
                         type="date"
-                        value={stakeholderForm.metadata.accreditation_expiry || ""}
-                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, accreditation_expiry: e.target.value } })}
+                        value={stakeholderForm.metadata.renewal_date || ""}
+                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, renewal_date: e.target.value } })}
                         className="h-12 font-bold bg-white border-0 rounded-xl px-4"
                       />
-                    </div>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Accreditation Status</Label>
-                      <Select
-                        value={stakeholderForm.metadata.accreditation_status || "Active"}
-                        onValueChange={(v) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, accreditation_status: v } })}
-                      >
-                        <SelectTrigger className="h-12 font-bold bg-white border-0 rounded-xl px-4">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="Active" className="font-bold text-emerald-600">Fully Accredited</SelectItem>
-                          <SelectItem value="Provision" className="font-bold text-amber-600">Provisional</SelectItem>
-                          <SelectItem value="Expired" className="font-bold text-red-600">Expired</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </>
                 )}
 
-                {stakeholderForm.type === "employer" && (
+                {stakeholderForm.type === "corporate_client" && (
                   <div className="space-y-3 lg:col-span-2">
                     <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Industry Sector</Label>
                     <Input
@@ -773,37 +682,14 @@ export default function StakeholderDashboard() {
                   </div>
                 )}
 
-                {(stakeholderForm.type === "alumni" || stakeholderForm.type === "international_student" || stakeholderForm.type === "student") && (
-                  <>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Subject Expertise</Label>
-                      <Input
-                        value={stakeholderForm.metadata.subject_area || ""}
-                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, subject_area: e.target.value } })}
-                        placeholder="e.g. Advanced Taxation"
-                        className="h-12 font-bold bg-white border-0 rounded-xl px-4"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">Panel Role</Label>
-                      <Input
-                        value={stakeholderForm.metadata.panel_role || ""}
-                        onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, panel_role: e.target.value } })}
-                        placeholder="e.g. Senior Reviewer"
-                        className="h-12 font-bold bg-white border-0 rounded-xl px-4"
-                      />
-                    </div>
-                  </>
-                )}
-
                 {stakeholderForm.type === "staff" && (
                   <>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">KASNEB Department</Label>
+                      <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400 ml-1">CIC Department</Label>
                       <Input
                         value={stakeholderForm.metadata.department || ""}
                         onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, department: e.target.value } })}
-                        placeholder="e.g. Examinations"
+                        placeholder="e.g. Claims"
                         className="h-12 font-bold bg-white border-0 rounded-xl px-4"
                       />
                     </div>
@@ -812,7 +698,7 @@ export default function StakeholderDashboard() {
                       <Input
                         value={stakeholderForm.metadata.internal_role || ""}
                         onChange={(e) => setStakeholderForm({ ...stakeholderForm, metadata: { ...stakeholderForm.metadata, internal_role: e.target.value } })}
-                        placeholder="e.g. QA Specialist"
+                        placeholder="e.g. Underwriter"
                         className="h-12 font-bold bg-white border-0 rounded-xl px-4"
                       />
                     </div>

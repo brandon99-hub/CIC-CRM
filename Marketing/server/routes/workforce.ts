@@ -20,6 +20,41 @@ workforceRouter.get("/shifts", marketingAuth, async (req, res) => {
     }
 });
 
+// POST /api/workforce/shifts
+workforceRouter.post("/shifts", marketingAuth, async (req, res) => {
+    try {
+        const [newShift] = await db.insert(shifts).values(req.body).returning();
+        res.json(newShift);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to create shift" });
+    }
+});
+
+// PUT /api/workforce/shifts/:id
+workforceRouter.put("/shifts/:id", marketingAuth, async (req, res) => {
+    try {
+        const shiftId = req.params.id as string;
+        const [updatedShift] = await db.update(shifts).set(req.body).where(eq(shifts.id, shiftId)).returning();
+        if (!updatedShift) return res.status(404).json({ error: "Shift not found" });
+        res.json(updatedShift);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to update shift" });
+    }
+});
+
+// DELETE /api/workforce/shifts/:id
+workforceRouter.delete("/shifts/:id", marketingAuth, async (req, res) => {
+    try {
+        const shiftId = req.params.id as string;
+        await db.delete(userShifts).where(eq(userShifts.shiftId, shiftId));
+        const [deleted] = await db.delete(shifts).where(eq(shifts.id, shiftId)).returning();
+        if (!deleted) return res.status(404).json({ error: "Shift not found" });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete shift" });
+    }
+});
+
 // POST /api/workforce/shifts/assign
 workforceRouter.post("/shifts/assign", marketingAuth, async (req, res) => {
     try {
@@ -98,6 +133,31 @@ workforceRouter.post("/queues", marketingAuth, async (req, res) => {
         res.json(newQueue);
     } catch (err) {
         res.status(500).json({ error: "Failed to create queue" });
+    }
+});
+
+// PUT /api/workforce/queues/:id
+workforceRouter.put("/queues/:id", marketingAuth, async (req, res) => {
+    try {
+        const queueId = req.params.id as string;
+        const [updatedQueue] = await db.update(queues).set(req.body).where(eq(queues.id, queueId)).returning();
+        if (!updatedQueue) return res.status(404).json({ error: "Queue not found" });
+        res.json(updatedQueue);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to update queue" });
+    }
+});
+
+// DELETE /api/workforce/queues/:id
+workforceRouter.delete("/queues/:id", marketingAuth, async (req, res) => {
+    try {
+        const queueId = req.params.id as string;
+        await db.delete(userQueues).where(eq(userQueues.queueId, queueId));
+        const [deleted] = await db.delete(queues).where(eq(queues.id, queueId)).returning();
+        if (!deleted) return res.status(404).json({ error: "Queue not found" });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete queue" });
     }
 });
 

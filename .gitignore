@@ -45,3 +45,4 @@ replit.nix
 # Database
 *.db
 *.sqlite
+permissions_dump.json

@@ -8,7 +8,7 @@ import {
     Calendar, Clock, Plus, PlusCircle, HelpCircle, GraduationCap, Briefcase, UserCheck, FileEdit, UserCog,
     MapPin, Shield, CheckCircle2, AlertTriangle, ExternalLink, UserCircle, History, Zap, TrendingUp,
     FileText, Award, DollarSign, Info, ChevronDown, ChevronUp, Settings2, Linkedin, Twitter, Globe,
-    Instagram, Facebook, Save, X as CloseIcon, Edit2, Layers, AlertCircle, Network, Target
+    Instagram, Facebook, Save, X as CloseIcon, Edit2, Layers, AlertCircle, Network, Target, ShieldCheck
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STAKEHOLDER_TYPE_COLORS } from "@/components/stakeholders/stakeholder-type-colors";
+import { getSegmentDescription } from "./segment-definitions";
 import type { Stakeholder, Interaction, Relationship } from "@/components/stakeholders/stakeholder-types";
 import { useTranslation } from "react-i18next";
 import { useRegion } from "@/lib/RegionContext";
@@ -341,7 +342,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                             </div>
                             <div className="space-y-2">
                                 <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-                                    {(s.type === 'institution' || s.type === 'employer' || s.type === 'corporate_partner' || s.type === 'government_agency') ? (s.organization || s.name) : `${s.firstName || ""} ${s.lastName || ""}`.trim()}
+                                    {(s.type === 'corporate_client' || s.type === 'sacco_cooperative' || s.type === 'bancassurance_partner' || s.type === 'agent' || s.type === 'broker') ? (s.organization || s.name) : `${s.firstName || ""} ${s.lastName || ""}`.trim()}
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Badge className={`${STAKEHOLDER_TYPE_COLORS[s.type] || "bg-gray-100 text-gray-700"} text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 border-none shadow-sm`}>
@@ -350,11 +351,27 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                     <Badge variant="outline" className={`${riskColors[(s as any).aggregatedRisk || dynamicRisk] || "bg-gray-100 text-gray-700"} text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 border-none shadow-sm`}>
                                         {(s as any).aggregatedRisk || dynamicRisk} Risk
                                     </Badge>
-                                    {s.tags?.map((tag: any, idx: number) => (
+                                    {s.tags?.filter((tag: string) => !tag.startsWith('seg:')).map((tag: any, idx: number) => (
                                         <Badge key={`${tag}-${idx}`} variant="secondary" className="bg-gray-100 text-gray-600 px-2.5 py-0.5 font-bold rounded-md text-[10px] uppercase tracking-widest shadow-sm">
                                             {tag}
                                         </Badge>
                                     ))}
+                                    <TooltipProvider>
+                                        {segments?.map((seg: any) => (
+                                            <Tooltip key={seg.id} delayDuration={200}>
+                                                <TooltipTrigger asChild>
+                                                    <span className="inline-block cursor-help">
+                                                        <Badge className="bg-[#D0AC01]/10 text-[#D0AC01] px-2.5 py-0.5 font-bold rounded-md text-[10px] uppercase tracking-widest shadow-sm hover:bg-[#D0AC01]/20 transition-colors border-none">
+                                                            {seg.name}
+                                                        </Badge>
+                                                    </span>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-white border border-gray-100 text-gray-700 shadow-xl max-w-[250px] p-3 rounded-lg z-50">
+                                                    <p className="text-xs font-medium leading-relaxed">{getSegmentDescription(seg.name) || seg.description || "Segment connection"}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ))}
+                                    </TooltipProvider>
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">
                                     <Clock className="h-4 w-4 text-gray-400" />
@@ -382,7 +399,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                             <div className="space-y-1">
                                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Registration ID</Label>
-                                <p className="text-sm font-bold text-gray-900">{s.registrationNumber || "—"}</p>
+                                <p className="text-sm font-bold text-gray-900">{s.policyNumber || "—"}</p>
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Lifecycle Stage</Label>
@@ -392,29 +409,15 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {s.type === "student" || s.type === "international_student" ? (
                                                 <>
-                                                    <SelectItem value="registered" className="font-bold text-sky-600">Registered</SelectItem>
-                                                    <SelectItem value="alumni" className="font-bold text-[#004E98]">Alumni</SelectItem>
-                                                    <SelectItem value="suspended" className="font-bold text-orange-500">Suspended</SelectItem>
-                                                    <SelectItem value="dormant" className="font-bold text-slate-500">Dormant</SelectItem>
+                                                    <SelectItem value="lead" className="font-bold text-blue-600">Lead</SelectItem>
+                                                    <SelectItem value="prospect" className="font-bold text-indigo-600">Prospect</SelectItem>
+                                                    <SelectItem value="active" className="font-bold text-emerald-600">Active</SelectItem>
+                                                    <SelectItem value="renewal" className="font-bold text-amber-600">In Renewal</SelectItem>
+                                                    <SelectItem value="lapsed" className="font-bold text-gray-500">Lapsed/Dormant</SelectItem>
+                                                    <SelectItem value="cancelled" className="font-bold text-red-600">Cancelled</SelectItem>
+                                                    <SelectItem value="suspended" className="font-bold text-orange-600">Suspended</SelectItem>
                                                 </>
-                                            ) : s.type === "institution" ? (
-                                                <>
-                                                    <SelectItem value="inquiry" className="font-bold text-blue-600">Inquiry (Stage 1)</SelectItem>
-                                                    <SelectItem value="application_submitted" className="font-bold text-indigo-600">App Submitted (Stage 2)</SelectItem>
-                                                    <SelectItem value="assessment_visit" className="font-bold text-amber-600">Assessment (Stage 3)</SelectItem>
-                                                    <SelectItem value="under_review" className="font-bold text-orange-600">Under Review (Stage 4)</SelectItem>
-                                                    <SelectItem value="accredited" className="font-bold text-emerald-600">Accredited (Stage 5)</SelectItem>
-                                                    <SelectItem value="renewal" className="font-bold text-teal-600">Renewal (Stage 6)</SelectItem>
-                                                    <SelectItem value="lapsed" className="font-bold text-red-600">Lapsed (Stage 7)</SelectItem>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <SelectItem value="registered" className="font-bold text-emerald-600">Registered</SelectItem>
-                                                    <SelectItem value="dormant" className="font-bold text-gray-500">Dormant</SelectItem>
-                                                </>
-                                            )}
                                         </SelectContent>
                                     </Select>
                                 ) : (
@@ -436,18 +439,18 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Phone Number</Label>
                                 <p className="text-sm font-bold text-gray-700">{s.phone || "—"}</p>
                             </div>
-                            {s.type === 'student' && (
+                            {s.type === 'individual_policyholder' && (
                                 <div className="space-y-1 col-span-2 md:col-span-1">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Qualification Pathway</Label>
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Product Line</Label>
                                     {isEditing ? (
                                         <Input
-                                            value={editData.qualificationPathway || ""}
-                                            onChange={(e) => updateEditField("qualificationPathway", e.target.value)}
+                                            value={editData.productLine || ""}
+                                            onChange={(e) => updateEditField("productLine", e.target.value)}
                                             className="h-8 text-xs font-bold border-gray-200 bg-gray-50 rounded-lg mt-1"
-                                            placeholder="e.g. CPA, CS, CIFA"
+                                            placeholder="e.g. Motor, Medical, Life"
                                         />
                                     ) : (
-                                        <p className="text-sm font-bold text-[#004E98]">{s.qualificationPathway || "Not Specified"}</p>
+                                        <p className="text-sm font-bold text-[#004E98]">{s.productLine || "Not Specified"}</p>
                                     )}
                                 </div>
                             )}
@@ -542,7 +545,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                                 <p className="text-xs font-bold text-[#004E98] hover:underline cursor-pointer">{s.organization || "Independent"}</p>
                                             )}
                                         </div>
-                                        {(s.type === 'institution' || s.type === 'employer' || s.type === 'corporate_partner' || s.type === 'government_agency') && (
+                                        {(s.type === 'corporate_client' || s.type === 'sacco_cooperative' || s.type === 'bancassurance_partner' || s.type === 'agent' || s.type === 'broker') && (
                                             <div className="space-y-2">
                                                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Specific Contact</Label>
                                                 <p className="text-xs font-bold text-gray-700 capitalize">{s.name || "Unassigned"}</p>
@@ -668,14 +671,14 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <Activity className="h-4 w-4 mr-2" /> Activity & Cases
                             </TabsTrigger>
                         )}
-                        {s.type !== 'staff' && s.type !== 'employer' && s.type !== 'vendor' && s.type !== 'government_agency' && s.type !== 'corporate_partner' && s.type !== 'media' && s.type !== 'sponsor' && (
-                            <TabsTrigger value="registration" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
-                                <GraduationCap className="h-4 w-4 mr-2" /> Registration History
+                        {s.type !== 'staff' && (
+                            <TabsTrigger value="policies" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
+                                <Shield className="h-4 w-4 mr-2" /> Policy History
                             </TabsTrigger>
                         )}
-                        {s.type !== 'staff' && s.type !== 'employer' && s.type !== 'vendor' && s.type !== 'government_agency' && s.type !== 'corporate_partner' && s.type !== 'media' && s.type !== 'sponsor' && (
-                            <TabsTrigger value="examination" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
-                                <Award className="h-4 w-4 mr-2" /> Examination History
+                        {s.type !== 'staff' && (
+                            <TabsTrigger value="claims" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
+                                <AlertTriangle className="h-4 w-4 mr-2" /> Claims History
                             </TabsTrigger>
                         )}
                         {s.type !== 'staff' && (
@@ -688,16 +691,12 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <Network className="h-4 w-4 mr-2" /> Connections
                             </TabsTrigger>
                         )}
-                        {s.type === 'employer' && (
-                            <TabsTrigger value="employee_certificates" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
-                                <Award className="h-4 w-4 mr-2" /> Employee Certificates
+                        {s.type !== 'staff' && (
+                            <TabsTrigger value="underwriting" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
+                                <ShieldCheck className="h-4 w-4 mr-2" /> Underwriting
                             </TabsTrigger>
                         )}
-                        {s.type === 'institution' && (
-                            <TabsTrigger value="accreditation" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
-                                <Shield className="h-4 w-4 mr-2" /> Accreditation Management
-                            </TabsTrigger>
-                        )}
+
                         {s.type === 'staff' && (
                             <>
                                 <TabsTrigger value="staff_shifts" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#004E98] data-[state=active]:text-[#004E98] rounded-none border-b-2 border-transparent px-2 h-full text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap flex-shrink-0">
@@ -726,127 +725,79 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                         </CardContent>
                     </Card>
                 </TabsContent>
-
-                <TabsContent value="registration" className="p-8">
+                <TabsContent value="underwriting" className="p-8">
                     <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 flex flex-row items-center justify-between">
+                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4">
                             <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4" /> Registration Lifecycle
+                                <ShieldCheck className="h-4 w-4" /> Underwriting Progress
                             </CardTitle>
-                            {s.registrationExpiryDate && (
-                                <Badge className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black">
-                                    Expires: {new Date(s.registrationExpiryDate).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </Badge>
-                            )}
                         </CardHeader>
-                        <CardContent className="p-0">
-                            {(s.registrationHistory || []).length > 0 ? (
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-gray-50/30 border-b border-gray-100">
-                                        <tr>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Date</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Event Type</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {(s.registrationHistory || []).map((reg: any, i: number) => (
-                                            <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="py-3 px-6">
-                                                    <p className="text-xs font-bold text-gray-900">
-                                                        {new Date(reg.date || reg).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                                    </p>
-                                                </td>
-                                                <td className="py-3 px-6">
-                                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">{reg.type || "Registration Event"}</p>
-                                                </td>
-                                                <td className="py-3 px-6 text-right">
-                                                    <Badge className={`${reg.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
-                                                        {reg.status || "Completed"}
-                                                    </Badge>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        <CardContent className="p-8 flex flex-col items-center justify-center min-h-[200px]">
+                            {meta.underwritingProgress ? (
+                                <div className="space-y-4 text-center">
+                                    <div className="w-16 h-16 rounded-full bg-[#004E98]/10 flex items-center justify-center mx-auto">
+                                        <Activity className="h-8 w-8 text-[#004E98]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Current Status</p>
+                                        <Badge className="bg-[#004E98] text-white px-4 py-1.5 text-sm font-bold shadow-md hover:bg-[#003B73] transition-colors uppercase tracking-wider">
+                                            {meta.underwritingProgress}
+                                        </Badge>
+                                    </div>
+                                    <p className="text-xs text-gray-500 font-medium max-w-md mx-auto mt-4">
+                                        The stakeholder is currently at the <strong>{meta.underwritingProgress}</strong> stage in the risk assessment and approval pipeline.
+                                    </p>
+                                </div>
                             ) : (
-                                <p className="text-sm font-bold text-gray-400 italic text-center py-8">No registration events recorded</p>
+                                <div className="text-center space-y-3">
+                                    <Shield className="h-10 w-10 text-gray-200 mx-auto" />
+                                    <p className="text-sm font-bold text-gray-400 italic">No underwriting records found.</p>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="examination" className="p-8 space-y-8">
-                    {/* Certificates Section (Merged into Examination Tab as requested) */}
-                    {(s.certificatesAwarded || []).length > 0 && (
-                        <Card className="border-[#004E98]/20 shadow-lg shadow-[#004E98]/5 rounded-xl bg-gradient-to-br from-white to-[#004E98]/5">
-                            <CardHeader className="p-4 border-b border-[#004E98]/10">
-                                <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                    <Award className="h-4 w-4" /> Certificates Awarded
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {(s.certificatesAwarded || []).map((cert: any, i: number) => (
-                                        <div key={i} className="flex items-start gap-4 p-4 border border-[#004E98]/20 rounded-xl bg-white relative overflow-hidden group hover:border-[#004E98]/40 transition-all">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#004E98]/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform" />
-                                            <div className="h-10 w-10 rounded-full bg-[#004E98]/10 flex items-center justify-center flex-shrink-0">
-                                                <Award className="h-5 w-5 text-[#004E98]" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-black text-gray-900 leading-tight">{cert.certificate || cert}</p>
-                                                {cert.issueDate && (
-                                                    <div className="mt-2 space-y-1">
-                                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                                            Issued: <span className="text-gray-900">{new Date(cert.issueDate).toLocaleDateString()}</span>
-                                                        </p>
-                                                        {cert.validUntil && (
-                                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                                                Valid Until: <span className="text-[#004E98]">{new Date(cert.validUntil).toLocaleDateString()}</span>
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
+                <TabsContent value="policies" className="p-8">
                     <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4">
+                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 flex flex-row items-center justify-between">
                             <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4" /> Examination Scorecard
+                                <Shield className="h-4 w-4" /> Policy History
                             </CardTitle>
+                            {s.policyRenewalDate && (
+                                <Badge className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black">
+                                    Renews: {new Date(s.policyRenewalDate).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </Badge>
+                            )}
                         </CardHeader>
                         <CardContent className="p-0">
-                            {(s.examinationHistory || []).length > 0 ? (
+                            {(s.policyHistory || []).length > 0 ? (
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
                                         <tr>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Series</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Subject</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-center">Score</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Result</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Policy No</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Product</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Period</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
-                                        {(s.examinationHistory || []).map((exam: any, i: number) => (
+                                        {(s.policyHistory || []).map((pol: any, i: number) => (
                                             <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="py-3 px-6">
-                                                    <p className="text-xs font-bold text-gray-900">{exam.series || "Unknown"}</p>
+                                                    <p className="text-xs font-bold text-gray-900">{pol.policyNumber || "N/A"}</p>
                                                 </td>
                                                 <td className="py-3 px-6">
-                                                    <p className="text-xs font-bold text-[#004E98]">{exam.subject || "Examination"}</p>
+                                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">{pol.product || "Unknown"}</p>
                                                 </td>
-                                                <td className="py-3 px-6 text-center">
-                                                    <span className="text-xs font-black text-gray-900">{exam.score || "N/A"}</span>
+                                                <td className="py-3 px-6">
+                                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                                                        {pol.startDate ? new Date(pol.startDate).toLocaleDateString('en-KE') : '—'} - {pol.endDate ? new Date(pol.endDate).toLocaleDateString('en-KE') : '—'}
+                                                    </p>
                                                 </td>
                                                 <td className="py-3 px-6 text-right">
-                                                    <Badge className={`${exam.result === 'Pass' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
-                                                        {exam.result || "Completed"}
+                                                    <Badge className={`${pol.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
+                                                        {pol.status || "Completed"}
                                                     </Badge>
                                                 </td>
                                             </tr>
@@ -854,7 +805,54 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                     </tbody>
                                 </table>
                             ) : (
-                                <p className="text-sm font-bold text-gray-400 italic text-center py-8">No examinations recorded</p>
+                                <p className="text-sm font-bold text-gray-400 italic text-center py-8">No policy history recorded</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="claims" className="p-8 space-y-8">
+                    <Card className="border-gray-100 shadow-sm rounded-xl">
+                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4">
+                            <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" /> Claims History
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {(s.claimsHistory || []).length > 0 ? (
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-gray-50/30 border-b border-gray-100">
+                                        <tr>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Date</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Claim ID / Type</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-center">Amount (KES)</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {(s.claimsHistory || []).map((claim: any, i: number) => (
+                                            <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="py-3 px-6">
+                                                    <p className="text-xs font-bold text-gray-900">{claim.date ? new Date(claim.date).toLocaleDateString('en-KE') : "N/A"}</p>
+                                                </td>
+                                                <td className="py-3 px-6">
+                                                    <p className="text-xs font-bold text-[#004E98]">{claim.claimId || "Unknown"}</p>
+                                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{claim.type || "General"}</p>
+                                                </td>
+                                                <td className="py-3 px-6 text-center">
+                                                    <span className="text-xs font-black text-gray-900">{formatStakeholderCurrency(s.country || "Kenya", claim.amount || 0)}</span>
+                                                </td>
+                                                <td className="py-3 px-6 text-right">
+                                                    <Badge className={`${claim.status === 'Settled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
+                                                        {claim.status || "Pending"}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <p className="text-sm font-bold text-gray-400 italic text-center py-8">No claims recorded</p>
                             )}
                         </CardContent>
                     </Card>
@@ -867,11 +865,11 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <DollarSign className="h-4 w-4" /> Financial Ledger
                             </CardTitle>
                             <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-[#004E98]/20 text-[#004E98] bg-[#004E98]/5">
-                                Total: KES {((s.paymentHistory || []).reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0)).toLocaleString()}
+                                Total: KES {((s.premiumPaymentHistory || []).reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0)).toLocaleString()}
                             </Badge>
                         </CardHeader>
                         <CardContent className="p-0">
-                            {(s.paymentHistory || []).length > 0 ? (
+                            {(s.premiumPaymentHistory || []).length > 0 ? (
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
                                         <tr>
@@ -883,7 +881,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
-                                        {(s.paymentHistory || []).map((payment: any, i: number) => (
+                                        {(s.premiumPaymentHistory || []).map((payment: any, i: number) => (
                                             <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-gray-500">

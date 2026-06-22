@@ -34,18 +34,15 @@ export default function EventRegistration() {
   const [loading, setLoading] = useState(false);
   const [createdLead, setCreatedLead] = useState<{ id: string; routedToDepartment: string } | null>(null);
 
-  const QUALIFICATIONS = [
-    "CFFE",
-    "CPA",
-    "CS",
-    "CIFA",
-    "CCP",
-    "CISSE",
-    "CQP",
-    "ATD",
-    "DDMA",
-    "DCNSA",
-    "CAMS",
+  const PRODUCTS = [
+    "Motor",
+    "Life",
+    "Medical",
+    "Property",
+    "Marine",
+    "Pension",
+    "Group Life",
+    "Micro-insurance",
     "Other"
   ];
 
@@ -60,7 +57,7 @@ export default function EventRegistration() {
       email: "",
       phone: "",
       institution: "",
-      qualificationOfInterest: "",
+      productOfInterest: "",
       issuesReported: "",
       selectedPath: "admissions" as "admissions" | "support",
     }),
@@ -74,7 +71,7 @@ export default function EventRegistration() {
     email: "",
     phone: "",
     institution: "",
-    qualificationOfInterest: "",
+    productOfInterest: "",
     issuesReported: "",
     selectedPath: "admissions" as "admissions" | "support",
   });
@@ -133,10 +130,10 @@ export default function EventRegistration() {
       return;
     }
 
-    if (formData.selectedPath === "admissions" && !formData.qualificationOfInterest) {
+    if (formData.selectedPath === "admissions" && !formData.productOfInterest) {
       toast({
-        title: "Qualification Required",
-        description: "Please select a target syllabus of interest.",
+        title: "Product Required",
+        description: "Please select a target product of interest.",
         variant: "destructive",
       });
       return;
@@ -164,7 +161,7 @@ export default function EventRegistration() {
           email: formData.email,
           phone: formData.phone,
           institution: formData.institution,
-          qualificationOfInterest: formData.selectedPath === "admissions" ? formData.qualificationOfInterest : "Other",
+          productOfInterest: formData.selectedPath === "admissions" ? formData.productOfInterest : "Other",
           issuesReported: formData.selectedPath === "support" ? formData.issuesReported : undefined,
           eventSlug: slug,
           selectedPath: formData.selectedPath,
@@ -206,7 +203,7 @@ export default function EventRegistration() {
       email: "",
       phone: "",
       institution: "",
-      qualificationOfInterest: "",
+      productOfInterest: "",
       issuesReported: "",
       selectedPath: "admissions" as "admissions" | "support",
     };
@@ -237,10 +234,10 @@ export default function EventRegistration() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Event Unavailable</h1>
-              <p className="text-gray-500 font-medium">{validationError || "This KASNEB registration portal is currently closed or the event has concluded."}</p>
+              <p className="text-gray-500 font-medium">{validationError || "This CIC registration portal is currently closed or the event has concluded."}</p>
             </div>
-            <Button variant="outline" className="rounded-xl h-12 w-full font-bold border-slate-200" onClick={() => window.location.href = 'https://kasneb.or.ke'}>
-              Visit Official KASNEB Site
+            <Button variant="outline" className="rounded-xl h-12 w-full font-bold border-slate-200" onClick={() => window.location.href = 'https://cic.co.ke'}>
+              Visit Official CIC Site
             </Button>
           </CardContent>
         </Card>
@@ -271,7 +268,7 @@ export default function EventRegistration() {
             <div className="space-y-4 text-left border-t border-slate-100 pt-6 mt-6">
               <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">What Happens Next?</h3>
               <p className="text-gray-600 leading-relaxed text-sm">
-                A KASNEB representative from our <strong className="text-[#004E98] font-black">{departmentName}</strong> department has been notified. They will contact you within <strong>3 business days</strong> to guide you through registration, resources, and sitting requirements.
+                A CIC representative from our <strong className="text-[#004E98] font-black">{departmentName}</strong> department has been notified. They will contact you within <strong>3 business days</strong> to guide you through registration, resources, and policy requirements.
               </p>
             </div>
 
@@ -294,8 +291,8 @@ export default function EventRegistration() {
       {/* 1. BRANDING HEADER AT THE TOP */}
       <div className="w-full max-w-xl text-center mb-8 pt-4">
         <div className="inline-flex items-center gap-3.5 mb-5 px-5 py-2.5 bg-white shadow-sm border border-slate-100 rounded-full">
-          <img src="/logo.png" alt="KASNEB Logo" className="w-7 h-7 object-contain" />
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-[#004E98]">KASNEB Events</span>
+          <img src="/logo.webp" alt="CIC Logo" className="w-7 h-7 object-contain" />
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-[#004E98]">CIC Events</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase px-4">
           {validatedEvent.name}
@@ -380,17 +377,17 @@ export default function EventRegistration() {
             {formData.selectedPath === "admissions" && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#004E98] ml-1">Qualification of Interest *</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#004E98] ml-1">Product of Interest *</Label>
                   <Select 
                     required
-                    value={formData.qualificationOfInterest} 
-                    onValueChange={(v) => updateForm({ qualificationOfInterest: v })}
+                    value={formData.productOfInterest} 
+                    onValueChange={(v) => updateForm({ productOfInterest: v })}
                   >
                     <SelectTrigger className="h-14 bg-gray-50/50 border-gray-200 focus:border-[#004E98] focus:ring-2 focus:ring-[#004E98]/20 rounded-2xl border-2 outline-none transition-all duration-200">
-                      <SelectValue placeholder="Select target syllabus..." />
+                      <SelectValue placeholder="Select target product..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl bg-white">
-                      {QUALIFICATIONS.map(q => (
+                      {PRODUCTS.map(q => (
                         <SelectItem key={q} value={q} className="font-bold">{q}</SelectItem>
                       ))}
                     </SelectContent>
@@ -435,7 +432,7 @@ export default function EventRegistration() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#004E98] ml-1">Having issues with Kasneb Services? *</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#004E98] ml-1">Having issues with CIC Services? *</Label>
                   <Textarea 
                     required
                     placeholder="Describe your challenge in detail (minimum 10 words for actionable support)..."

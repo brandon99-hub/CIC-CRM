@@ -1241,7 +1241,7 @@ export function registerAdminRoutes(app: Express) {
       if (email !== undefined) updateData.email = email;
       if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
       if (isActive !== undefined) updateData.isActive = isActive;
-      if (departmentId !== undefined) updateData.departmentId = departmentId;
+      if (departmentId !== undefined) updateData.departmentId = departmentId || null;
       if (password) updateData.password = await bcrypt.hash(password, 12);
 
       const updated = await db.update(marketingUsers).set(updateData as any).where(eq(marketingUsers.id, id as string)).returning();

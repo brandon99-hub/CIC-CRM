@@ -1117,8 +1117,8 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="System Admin"
+      title="CIC CRM"
+      subtitle="SYSTEM ADMIN"
       navGroups={navGroups}
       activeTab={activeTab}
       setActiveTab={setActiveTab}

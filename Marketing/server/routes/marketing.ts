@@ -2578,7 +2578,7 @@ export function registerMarketingRoutes(app: Express) {
       const fs   = await import("fs");
 
       const doc  = new PDFDocument({ margin: 50 });
-      const logoPath = path.resolve(process.cwd(), "client/public/logo.png");
+      const logoPath = path.resolve(process.cwd(), "client/public/logo.webp");
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="ambassador-report-${Date.now()}.pdf"`);

@@ -12,24 +12,24 @@ export const RegistrationAutomationService = {
     const lapseThresholdDate = new Date();
     lapseThresholdDate.setMonth(lapseThresholdDate.getMonth() - 3);
 
-    // Fetch all stakeholders with an expiry date
-    const allExpirations = await db.select().from(stakeholders).where(isNotNull(stakeholders.registrationExpiryDate));
+    // Fetch all stakeholders with a policy renewal date set
+    const allExpirations = await db.select().from(stakeholders).where(isNotNull(stakeholders.policyRenewalDate));
 
     let reminded = 0;
     let lapsed = 0;
 
     for (const sh of allExpirations) {
-      if (!sh.registrationExpiryDate || !sh.email) continue;
+      if (!sh.policyRenewalDate || !sh.email) continue;
       
-      const expiryDate = new Date(sh.registrationExpiryDate);
+      const expiryDate = new Date(sh.policyRenewalDate);
       
       // Check if past expiry
       if (expiryDate < now) {
         // If it's more than 3 months past the expiry date -> Lapse -> Dormant
         if (expiryDate <= lapseThresholdDate) {
-          if (sh.lifecycleStage !== "dormant") {
+          if (sh.lifecycleStage !== "lapsed") {
             await db.update(stakeholders).set({
-              lifecycleStage: "dormant",
+              lifecycleStage: "lapsed",
               updatedAt: sql`now()`
             }).where(eq(stakeholders.id, sh.id));
             
@@ -38,8 +38,8 @@ export const RegistrationAutomationService = {
               type: "status_change",
               channel: "system",
               direction: "outbound",
-              subject: "Registration Lapsed to Dormant",
-              description: "Stakeholder registration lapsed over 3 months past renewal. Stage changed to Dormant.",
+              subject: "Policy Lapsed to Inactive",
+              description: "Policyholder policy renewal lapsed over 3 months past due date. Stage changed to Lapsed.",
               date: now.toISOString(),
             });
 
@@ -48,13 +48,14 @@ export const RegistrationAutomationService = {
               to: sh.email,
               html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Your Registration Has Lapsed</h2>
+                  <h2>Your CIC Insurance Policy Has Lapsed</h2>
                   <p>Hello ${sh.firstName},</p>
-                  <p>Your registration with KASNEB lapsed over 3 months ago. Your account is now dormant.</p>
-                  <p>Please contact support to reactivate your account.</p>
+                  <p>Your <strong>CIC Insurance policy</strong> has lapsed — it has been more than 3 months past your renewal date. Your account is now marked as inactive.</p>
+                  <p>To reinstate your cover, please contact your nearest CIC branch or call us on <strong>0703 099 120</strong>.</p>
+                  <p style="color:#666;font-size:12px;">CIC Insurance Group &mdash; We keep our word.</p>
                 </div>
               `,
-              subject: "Important: Your Registration Has Lapsed"
+              subject: "Important: Your CIC Insurance Policy Has Lapsed"
             }).catch((e: any) => console.error(`Failed to send lapse email to ${sh.email}:`, e));
             lapsed++;
           }
@@ -67,13 +68,14 @@ export const RegistrationAutomationService = {
             to: sh.email,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Please Renew Your Registration</h2>
+                  <h2>Action Required: Your CIC Policy Is Due for Renewal</h2>
                   <p>Hello ${sh.firstName},</p>
-                  <p>Your registration with KASNEB expired on ${sh.registrationExpiryDate}.</p>
-                  <p>Please renew your registration to maintain your active status.</p>
+                  <p>Your <strong>CIC Insurance policy</strong> renewal was due on <strong>${sh.policyRenewalDate}</strong>. Please renew promptly to ensure your cover remains active.</p>
+                  <p>You can renew via <strong>M-PESA Paybill 510200</strong>, the CIC EasyBima portal, or by visiting any CIC branch.</p>
+                  <p style="color:#666;font-size:12px;">CIC Insurance Group &mdash; We keep our word.</p>
                 </div>
               `,
-            subject: "Reminder: Please Renew Your Registration"
+            subject: "Reminder: Your CIC Insurance Policy Renewal Is Overdue"
           }).catch((e: any) => console.error(`Failed to send reminder email to ${sh.email}:`, e));
           
           reminded++;

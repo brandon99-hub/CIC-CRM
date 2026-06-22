@@ -94,8 +94,8 @@ export default function CommunicationsDashboard() {
 
   return (
     <DashboardLayout
-      title="Communications Hub"
-      subtitle="Omnichannel Messaging"
+      title="CIC CRM"
+      subtitle="COMMUNICATIONS DASHBOARD"
       navGroups={navGroups}
       activeTab={activeSection}
       setActiveTab={setActiveSection}

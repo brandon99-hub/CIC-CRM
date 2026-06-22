@@ -242,8 +242,8 @@ export default function CollaborationHub() {
 
     return (
         <DashboardLayout
-            title="KASNEB CRM"
-            subtitle="Internal Collaboration"
+            title="CIC CRM"
+            subtitle="COLLABORATION HUB"
             navGroups={navGroups}
             activeTab="collaboration"
             setActiveTab={(tab) => setLocation(tab === "overview" ? "/cases/dashboard" : `/cases/dashboard?tab=${tab}`)}

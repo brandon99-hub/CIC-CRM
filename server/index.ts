@@ -21,7 +21,7 @@ import { registerInboxRoutes } from "../Marketing/server/routes/inbox";
 import { registerSocialRoutes } from "../Marketing/server/routes/social";
 import { aiRouter } from "../Marketing/server/routes/ai";
 import { marketingAuth } from "../Marketing/server/middleware/marketingAuth";
-import { registerAccreditationRoutes } from "../Marketing/server/routes/accreditation";
+// import { registerAccreditationRoutes } from "../Marketing/server/routes/accreditation";
 import { registerWhatsappWebhookRoutes } from "../Marketing/server/routes/whatsapp-webhook";
 import { registerWorkforceRoutes } from "../Marketing/server/routes/workforce";
 
@@ -120,7 +120,6 @@ registerProfileRoutes(app);
 registerSatisfactionRoutes(app);
 registerInboxRoutes(app);
 registerSocialRoutes(app);
-registerAccreditationRoutes(app);
 registerWhatsappWebhookRoutes(app);
 registerWorkforceRoutes(app);
 app.use("/api/ai", aiLimiter, marketingAuth, aiRouter);

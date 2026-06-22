@@ -628,8 +628,8 @@ export default function MarketingDashboard() {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="Marketing System"
+      title="CIC CRM"
+      subtitle="MARKETING DASHBOARD"
       navGroups={navGroups}
       activeTab={activeSection}
       setActiveTab={(tab) => {

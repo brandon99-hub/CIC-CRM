@@ -72,7 +72,7 @@ export function IntakeStation({ onCaseCreated, onBack }: IntakeStationProps) {
             const res = await apiRequest(`/api/stakeholders?search=${debouncedId}`);
             if (!res.ok) return null;
             const data = await res.json();
-            const stakeholder = data.stakeholders.find((s: any) => s.registrationNumber === debouncedId);
+            const stakeholder = data.stakeholders.find((s: any) => s.policyNumber === debouncedId);
             if (!stakeholder) return null;
             
             // Fetch full profile (interactions, relationships, etc.)

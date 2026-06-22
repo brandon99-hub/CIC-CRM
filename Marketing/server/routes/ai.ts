@@ -53,7 +53,7 @@ export async function determineCaseCategory(subject: string, description: string
     
     const fullCategoryList = validCategoryNames.join(", ");
 
-    const systemPrompt = `You are an intelligent case routing assistant for KASNEB CRM. 
+    const systemPrompt = `You are an intelligent case routing assistant for CIC Insurance Group CRM.
 You must analyze the incoming case Subject and Description and classify it into EXACTLY ONE of these categories: [${fullCategoryList}].
 Return ONLY a JSON object with two fields: "category" (the exact string match) and "confidence" (a number between 0 and 100).
 Do not return any other text.`;
@@ -110,8 +110,8 @@ export async function screenInboundMessage(
     const categoryNames = categories.map(c => c.name);
     const categoryList = categoryNames.join(", ");
 
-    const systemPrompt = `You are an intelligent message screener for KASNEB (Kenya National Accountants Examinations Board).
-KASNEB handles: CPA, CIFA, CS, CICT, ATC, ATD examinations, student registrations, exemptions, results, certifications, accreditations.
+    const systemPrompt = `You are an intelligent message screener for CIC Insurance Group — Kenya's leading cooperative-based insurer.
+CIC Insurance handles: Motor insurance, Life assurance, Medical/health insurance, Property insurance, Marine insurance, Pension schemes, Group life and credit life schemes for SACCOs and corporates, Micro-insurance products, Bancassurance solutions.
 
 Service categories available: [${categoryList}]
 
@@ -127,14 +127,15 @@ Analyze the inbound message and respond ONLY with a valid JSON object. No extra 
 
 Classification rules:
 - "greeting": hi, hello, good morning, hey, thanks, ok, bye, 👋, emojis only → shouldCreateSignal=false, confidence=99, provide friendly autoReply ending with "How can we help you today?"
-- "inquiry": general questions about fees, dates, process, eligibility, exam timetables → shouldCreateSignal=false, confidence=60-80, autoReply=null (human will answer)
-- "complaint": error, rejected, wrong, problem, failed, not received, paid but nothing, appeal → shouldCreateSignal=true, confidence=70-95, suggestedCategory from list
-- "request": want to register, apply, transfer, renew, request certificate, apply for exemption → shouldCreateSignal=true, confidence=70-90, suggestedCategory from list
+- "inquiry": general questions about premiums, cover types, eligibility, claims process, policy details → shouldCreateSignal=false, confidence=60-80, autoReply=null (agent will answer)
+- "complaint": claim rejected, wrong amount, delayed payout, policy lapsed unexpectedly, bad service → shouldCreateSignal=true, confidence=70-95, suggestedCategory from list
+- "request": want to renew, make a claim, amend policy, request certificate, enroll in scheme → shouldCreateSignal=true, confidence=70-90, suggestedCategory from list
 - "other": unclear, very short, ambiguous → shouldCreateSignal=true (safe default), confidence=30
 
 Auto-reply template for greetings:
-WhatsApp: "Hello! 👋 Welcome to KASNEB. We're here to assist you with CPA, CIFA, CS, CICT, ATC & ATD examinations, registrations, and certifications. How can we help you today?"
-Facebook/Instagram: "Hi there! Thank you for reaching out to KASNEB. How can we assist you today?"`;
+WhatsApp: "Hello! 👋 Welcome to CIC Insurance Group. We're here to assist you with Motor, Life, Medical, Property, Marine insurance, and SACCO/corporate group schemes. How can we help you today?"
+Facebook/Instagram: "Hi there! Thank you for reaching out to CIC Insurance Group. How can we assist you today?"`;
+
 
     const contextStr = conversationHistory.length > 0
       ? `Conversation history:\n${conversationHistory.slice(-3).join('\n')}\n\n`
@@ -192,8 +193,15 @@ aiRouter.post("/chat", async (req, res) => {
     
     // Context injection: we can add DB context here later
     // Basic AI response using Claude
-    const systemPrompt = `You are a helpful AI assistant for the KASNEB CRM system.
-You help staff and stakeholders with general CRM FAQs, navigation, and understanding KASNEB processes like Accreditations, Examinations, and Registrations. Keep responses concise and professional.`;
+    const systemPrompt = `You are a helpful AI assistant for the CIC Insurance Group CRM system.
+You help CIC staff and distribution partners with CRM navigation, client management, and understanding CIC Insurance processes including:
+- Policy onboarding, amendments, and renewal workflows
+- Motor, Life, Medical, Property, Marine, and SACCO group scheme management
+- Claims lodgement, tracking, and dispute resolution
+- Agent and broker partner management
+- Premium payment processing and M-PESA reconciliation
+- SACCO and corporate scheme client relationship management
+Keep responses concise, professional, and tailored to insurance operations in Kenya.`;
 
     const recentHistory = Array.isArray(history) ? history.slice(-5) : [];
     const formattedHistory = recentHistory.map((h: any) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join("\n");

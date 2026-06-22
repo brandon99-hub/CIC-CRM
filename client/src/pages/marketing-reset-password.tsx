@@ -100,7 +100,7 @@ export default function MarketingResetPassword() {
           <CardHeader className="space-y-3 pb-8">
             <div className="text-center">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="KASNEB Logo"
                 className="h-16 w-auto mx-auto mb-6"
               />

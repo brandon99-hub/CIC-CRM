@@ -52,7 +52,7 @@ export function DashboardSidebar({
         {/* Sidebar header */}
         <div className={`flex border-b border-gray-100 p-5 ${collapsed ? "flex-col items-center" : "flex-row items-center justify-between gap-3"}`}>
           <div className={`flex items-center ${collapsed ? "w-full justify-center" : "flex-1 min-w-0"}`}>
-            <img src="/logo.png" alt="KASNEB Logo" className="h-9 w-auto flex-shrink-0 drop-shadow-sm" />
+            <img src="/logo.webp" alt="CIC Logo" className="h-9 w-auto flex-shrink-0 drop-shadow-sm" />
             {!collapsed && (
               <div className="min-w-0 flex-1 ml-3.5 flex flex-col justify-center">
                 <h1 className="text-[13px] font-black text-gray-900 uppercase tracking-tight truncate leading-tight mb-0.5">{title}</h1>

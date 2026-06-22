@@ -147,50 +147,6 @@ export const DiscoveryService = {
             });
             await db.insert(stakeholders).values(withRefinedTypes);
         }
-
-        // 3. Sync Staff from marketingUsers (Real System Users)
-        const systemUsers = await db.select().from(marketingUsers);
-        if (systemUsers.length > 0) {
-            console.log(`[Discovery] Syncing ${systemUsers.length} system users as staff stakeholders...`);
-
-            // Fetch all departments to map IDs to names
-            const systemDepts = await db.select().from(departments); // Re-fetch or pass from above if needed
-            const deptMap = new Map(systemDepts.map(d => [d.id, d.name]));
-
-            for (const user of systemUsers) {
-                const deptName = user.departmentId ? deptMap.get(user.departmentId) : "Internal";
-
-                // Use email as a correlation key for upsert-like behavior via onConflictDoNothing
-                // or check existence manually since email is indexed.
-                const existing = await db.select().from(stakeholders).where(eq(stakeholders.email, user.email)).limit(1);
-
-                if (existing.length === 0) {
-                    await db.insert(stakeholders).values({
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        email: user.email,
-                        phone: user.phoneNumber,
-                        organization: deptName || "Internal",
-                        type: "staff",
-                        isActive: user.isActive,
-                        lifecycleStage: "active",
-                        designation: user.role
-                    });
-                } else {
-                    // Update existing staff record if it came from marketingUsers
-                    await db.update(stakeholders)
-                        .set({
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            phone: user.phoneNumber,
-                            organization: deptName || "Internal",
-                            isActive: user.isActive,
-                            designation: user.role
-                        })
-                        .where(eq(stakeholders.email, user.email));
-                }
-            }
-        }
     },
 
     /**

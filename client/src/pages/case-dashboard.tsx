@@ -121,7 +121,7 @@ export default function CaseDashboard() {
     cases: "Manage and resolve customer support cases",
     knowledge: "Knowledge base articles and FAQs",
     sla: "Monitor Service Level Agreement compliance",
-    simulate: "Test KASNEB intake and assignment scenarios",
+    simulate: "Test intake and assignment scenarios",
     triage: "Review and assign incoming cases",
     myshifts: "View and manage your upcoming shifts",
   };
@@ -172,8 +172,8 @@ export default function CaseDashboard() {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="Case Management"
+      title="CIC CRM"
+      subtitle="CASE MANAGEMENT"
       navGroups={navGroups}
       activeTab={activeTab}
       setActiveTab={handleTabChange}

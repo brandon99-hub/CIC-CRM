@@ -409,12 +409,7 @@ export function registerInboxRoutes(app: Express) {
         // Assign Case using Auto-Router
         try {
           const { AssignmentService } = await import("../services/assignment-service");
-          const { systemRoles } = await import("../../shared/adminSchema");
-          const { ilike } = await import("drizzle-orm");
-          const officerRole = await db.select().from(systemRoles).where(ilike(systemRoles.name, '%officer%')).limit(1);
-          if (officerRole.length > 0) {
-            await AssignmentService.autoAssignCase(newCase.id, officerRole[0].id);
-          }
+          await AssignmentService.autoAssignCase(newCase.id, null);
         } catch (assignErr) {
           console.error("Auto assignment failed:", assignErr);
         }

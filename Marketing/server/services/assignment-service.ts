@@ -41,7 +41,7 @@ export const AssignmentService = {
     /**
      * Finds the optimal assignee respecting queue limits and max concurrent cases.
      */
-    async getOptimalAssignee(roleId: string, departmentId?: string, serviceCategoryId?: string): Promise<string | null> {
+    async getOptimalAssignee(roleId?: string | null, departmentId?: string, serviceCategoryId?: string): Promise<string | null> {
         // 1. Try to find a matching queue for this category or department
         let targetQueueId: string | null = null;
         if (serviceCategoryId) {
@@ -81,9 +81,11 @@ export const AssignmentService = {
             }
         }
 
-        // 3. Fallback: If no queue or all agents at capacity, fallback to role & department
+        // 3. Fallback: If no queue or all agents at capacity, fallback to users with case management dashboard access
         if (candidates.length === 0) {
-            const conditions = [eq(userRoles.roleId, roleId)];
+            const { systemRoles } = await import("../../shared/adminSchema");
+            const conditions = [eq(systemRoles.isActive, true), sql`${systemRoles.dashboards} @> '"cases"'::jsonb`];
+            
             if (departmentId) {
                 conditions.push(eq(marketingUsers.departmentId, departmentId));
             }
@@ -91,6 +93,7 @@ export const AssignmentService = {
             const usersInRole = await db
                 .select({ userId: userRoles.userId })
                 .from(userRoles)
+                .innerJoin(systemRoles, eq(userRoles.roleId, systemRoles.id))
                 .innerJoin(marketingUsers, sql`${userRoles.userId}::uuid = ${marketingUsers.id}`)
                 .where(and(...conditions));
 
@@ -121,7 +124,7 @@ export const AssignmentService = {
     /**
      * Automatically assigns a case to the best user in a role.
      */
-    async autoAssignCase(caseId: string, roleId: string, departmentId?: string, requiresConsent: boolean = false, gracePeriodMinutes: number = 0) {
+    async autoAssignCase(caseId: string, roleId?: string | null, departmentId?: string, requiresConsent: boolean = false, gracePeriodMinutes: number = 0) {
         // Fetch the case to get serviceCategoryId
         const [targetCase] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
         if (!targetCase) return null;

@@ -101,8 +101,8 @@ export default function CaseWorkspace() {
 
     return (
         <DashboardLayout
-            title="KASNEB CRM"
-            subtitle="Case Management"
+            title="CIC CRM"
+            subtitle="CASE WORKSPACE"
             navGroups={navGroups}
             activeTab="cases"
             setActiveTab={(tab) => setLocation(tab === "overview" ? "/cases/dashboard" : `/cases/dashboard?tab=${tab}`)}
@@ -571,7 +571,7 @@ function StakeholderIdentityCard({ stakeholder, contactName }: { stakeholder: an
             case "accreditation":
                 return {
                     name: stakeholder.organization || contactName || "Unknown Institution",
-                    id: stakeholder.registrationNumber || "N/A",
+                    id: stakeholder.policyNumber || "N/A",
                     label1: "Location",
                     value1: stakeholder.county || "Kenya",
                     icon1: MapPin,
@@ -583,7 +583,7 @@ function StakeholderIdentityCard({ stakeholder, contactName }: { stakeholder: an
             case "employer":
                 return {
                     name: stakeholder.organization || contactName || "Unknown Employer",
-                    id: stakeholder.registrationNumber || "N/A",
+                    id: stakeholder.policyNumber || "N/A",
                     label1: "Industry",
                     value1: metadata.industry || "General Industry",
                     icon1: Briefcase,
@@ -596,7 +596,7 @@ function StakeholderIdentityCard({ stakeholder, contactName }: { stakeholder: an
             case "setter":
                 return {
                     name: stakeholder.firstName ? `${stakeholder.firstName} ${stakeholder.lastName}` : contactName || "Unknown Professional",
-                    id: stakeholder.registrationNumber || "N/A",
+                    id: stakeholder.policyNumber || "N/A",
                     label1: "Subject",
                     value1: metadata.subject_area || "General",
                     icon1: BookOpen,
@@ -608,7 +608,7 @@ function StakeholderIdentityCard({ stakeholder, contactName }: { stakeholder: an
             default: // student
                 return {
                     name: stakeholder.firstName ? `${stakeholder.firstName} ${stakeholder.lastName}` : contactName || "Unknown Student",
-                    id: stakeholder.registrationNumber || "N/A",
+                    id: stakeholder.policyNumber || "N/A",
                     label1: "Programme",
                     value1: metadata.programme_enrolled || "General Study",
                     icon1: GraduationCap,
@@ -919,7 +919,7 @@ function RecentActivityCard({ history, interactions, stakeholderCases }: { histo
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <span className="text-[11px] font-black uppercase tracking-tight text-gray-900 group-hover:text-[#004E98]">
-                                                    {c.registrationNumber || "GUEST"}: {c.stakeholderFirstName} {c.stakeholderLastName}
+                                                    {c.policyNumber || "GUEST"}: {c.stakeholderFirstName} {c.stakeholderLastName}
                                                 </span>
                                                 <Badge className={`text-[8px] py-0 h-3.5 border-0 font-black uppercase tracking-widest ml-auto ${statusColors[c.status] || "bg-gray-100 text-gray-600"}`}>
                                                     {formatLabel(c.status)}

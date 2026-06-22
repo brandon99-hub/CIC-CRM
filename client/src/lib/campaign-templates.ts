@@ -21,7 +21,7 @@ export const CAMPAIGN_TEMPLATES = {
         <center>
           <div class="main">
             <div class="header">
-              <img src="https://kasneb.or.ke/wp-content/uploads/2022/10/logo.png" alt="KASNEB" style="height: 50px; margin-bottom: 32px;">
+              <img src="/logo.webp" alt="CIC Insurance" style="height: 50px; margin-bottom: 32px;">
               <h1>${subject}</h1>
             </div>
             <div class="content">
@@ -61,7 +61,7 @@ export const CAMPAIGN_TEMPLATES = {
     <body>
       <div class="container">
         <div class="logo">
-          <img src="https://kasneb.or.ke/wp-content/uploads/2022/10/logo.png" alt="KASNEB" style="height: 40px;">
+          <img src="/logo.webp" alt="CIC Insurance" style="height: 40px;">
         </div>
         <h1 class="title">${subject}</h1>
         <div class="body-text">
@@ -127,7 +127,7 @@ export const CAMPAIGN_TEMPLATES = {
       </div>
       <div class="container">
         <div class="masthead">
-          <img src="https://kasneb.or.ke/wp-content/uploads/2022/10/logo.png" alt="KASNEB" style="height: 35px;">
+          <img src="/logo.webp" alt="CIC Insurance" style="height: 35px;">
           <div style="color: #004E98; font-weight: 800; font-size: 12px; margin-top: 10px; text-transform: uppercase;">COMMUNITY NEWSLETTER</div>
         </div>
         <div class="inner">

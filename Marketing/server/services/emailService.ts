@@ -74,7 +74,7 @@ class EmailService {
     <body>
       <div class="container">
         <div style="text-align: center;">
-             <img src="${process.env.APP_URL || 'http://localhost:5173'}/logo.png" alt="KASNEB CRM" class="logo">
+             <img src="${process.env.APP_URL || 'http://localhost:5173'}/logo.webp" alt="CIC CRM" class="logo">
         </div>
         <div class="eyebrow">Marketing Automation</div>
         <h1 class="title">New Activity Scheduled: ${activity.subject}</h1>

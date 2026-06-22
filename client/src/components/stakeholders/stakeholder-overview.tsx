@@ -118,11 +118,11 @@ export function StakeholderOverview({ stats, userName, recentInteractions, onNav
             name: s.type,
             engagement: s.avgEngagement,
             count: s.count,
-            color: s.color.includes('blue') ? '#004E98' :
-                s.color.includes('emerald') ? '#01a64e' :
-                    s.color.includes('amber') ? '#D0AC01' :
-                        s.color.includes('indigo') ? '#4f46e5' :
-                            s.color.includes('purple') ? '#9333ea' : '#94a3b8'
+            color: s.color?.includes('blue') ? '#004E98' :
+                s.color?.includes('emerald') || s.color?.includes('green') ? '#01a64e' :
+                    s.color?.includes('amber') ? '#D0AC01' :
+                        s.color?.includes('indigo') ? '#4f46e5' :
+                            s.color?.includes('purple') ? '#9333ea' : '#94a3b8'
         }));
 
     return (

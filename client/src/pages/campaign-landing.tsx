@@ -150,7 +150,7 @@ export default function CampaignLanding({ id }: { id: string }) {
       {/* Modern Footer Branding */}
       <footer className="mt-24 pt-12 pb-12 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 opacity-60">
-           <img src="/kasneb-logo.png" alt="KASNEB Logo" className="h-10 grayscale hover:grayscale-0 transition-all cursor-pointer" />
+           <img src="/logo.webp" alt="CIC Logo" className="h-10 grayscale hover:grayscale-0 transition-all cursor-pointer" />
            <div className="text-center md:text-right space-y-1">
               <p className="text-xs font-black uppercase tracking-widest text-gray-900">KASNEB Towers</p>
               <p className="text-[10px] font-bold text-gray-500">Hospital Road, Upper Hill, Nairobi, Kenya</p>

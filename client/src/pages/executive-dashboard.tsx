@@ -193,7 +193,7 @@ export default function ExecutiveDashboard() {
   const handleExport = (type: string) => {
     const doc = new jsPDF();
     const timestamp = new Date().toLocaleString();
-    const logoUrl = "/logo.png";
+    const logoUrl = "/logo.webp";
     const primaryColor: [number, number, number] = [0, 78, 152]; // #004E98
     const reportYear = new Date().getFullYear();
 
@@ -209,7 +209,7 @@ export default function ExecutiveDashboard() {
       doc.setFontSize(22);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.setFont("helvetica", "bold");
-      doc.text("KASNEB CRM EXECUTIVE REPORT", 50, 20);
+      doc.text("CIC CRM EXECUTIVE REPORT", 50, 20);
       
       doc.setFontSize(14);
       doc.setTextColor(100);
@@ -230,7 +230,7 @@ export default function ExecutiveDashboard() {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text(`KASNEB CRM Confidential - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+        doc.text(`CIC CRM Confidential - Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
       }
     };
 
@@ -316,7 +316,7 @@ export default function ExecutiveDashboard() {
     }
 
     addFooter();
-    doc.save(`KASNEB_${type.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`CIC_CRM_${type.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
     
     toast({
       title: "Report Exported",
@@ -371,8 +371,8 @@ export default function ExecutiveDashboard() {
 
   return (
     <DashboardLayout
-      title="KASNEB CRM"
-      subtitle="Executive Dashboard"
+      title="CIC CRM"
+      subtitle="EXECUTIVE DASHBOARD"
       navGroups={navGroups}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
