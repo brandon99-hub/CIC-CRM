@@ -439,21 +439,19 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Phone Number</Label>
                                 <p className="text-sm font-bold text-gray-700">{s.phone || "—"}</p>
                             </div>
-                            {s.type === 'individual_policyholder' && (
-                                <div className="space-y-1 col-span-2 md:col-span-1">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Product Line</Label>
-                                    {isEditing ? (
-                                        <Input
-                                            value={editData.productLine || ""}
-                                            onChange={(e) => updateEditField("productLine", e.target.value)}
-                                            className="h-8 text-xs font-bold border-gray-200 bg-gray-50 rounded-lg mt-1"
-                                            placeholder="e.g. Motor, Medical, Life"
-                                        />
-                                    ) : (
-                                        <p className="text-sm font-bold text-[#004E98]">{s.productLine || "Not Specified"}</p>
-                                    )}
-                                </div>
-                            )}
+                            <div className="space-y-1 col-span-2 md:col-span-1">
+                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Product Line</Label>
+                                {isEditing ? (
+                                    <Input
+                                        value={editData.productLine || ""}
+                                        onChange={(e) => updateEditField("productLine", e.target.value)}
+                                        className="h-8 text-xs font-bold border-gray-200 bg-gray-50 rounded-lg mt-1"
+                                        placeholder="e.g. Motor, Medical, Life"
+                                    />
+                                ) : (
+                                    <p className="text-sm font-bold text-[#004E98]">{s.productLine || "Not Specified"}</p>
+                                )}
+                            </div>
                             <div className="space-y-1 col-span-2 md:col-span-1">
                                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Region</Label>
                                 {isEditing ? (
@@ -595,8 +593,8 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                                     <div className="space-y-1 col-span-2 bg-[#004E98]/5 p-4 rounded-xl border border-[#004E98]/10 flex items-center justify-between">
                                         <div>
-                                            <Label className="text-[10px] font-black text-[#004E98]/60 uppercase tracking-widest leading-none">Outstanding Balance</Label>
-                                            <p className="text-2xl font-bold text-[#004E98] mt-1">{formatStakeholderCurrency(s.country || "Kenya", meta.balance ?? 0)}</p>
+                                            <Label className="text-[10px] font-black text-[#004E98]/60 uppercase tracking-widest leading-none">Total Premiums Paid</Label>
+                                            <p className="text-2xl font-bold text-[#004E98] mt-1">{formatStakeholderCurrency(s.country || "Kenya", (s.premiumPaymentHistory || []).reduce((acc: number, p: any) => acc + (Number(p.amount) || 0), 0))}</p>
                                         </div>
                                         <DollarSign className="h-8 w-8 text-[#004E98]/20" />
                                     </div>
@@ -725,14 +723,14 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                         </CardContent>
                     </Card>
                 </TabsContent>
-                <TabsContent value="underwriting" className="p-8">
-                    <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4">
-                            <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4" /> Underwriting Progress
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-8 flex flex-col items-center justify-center min-h-[200px]">
+                <TabsContent value="underwriting" className="p-0 border-t border-gray-100">
+                    <div className="bg-white overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
+                            <p className="text-[10px] font-black uppercase text-[#004E98] tracking-[0.2em] flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4" /> Current status of ongoing medical exams, document reviews, or risk assessments.
+                            </p>
+                        </div>
+                        <div className="p-8 flex flex-col items-center justify-center min-h-[200px]">
                             {meta.underwritingProgress ? (
                                 <div className="space-y-4 text-center">
                                     <div className="w-16 h-16 rounded-full bg-[#004E98]/10 flex items-center justify-center mx-auto">
@@ -754,23 +752,23 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                     <p className="text-sm font-bold text-gray-400 italic">No underwriting records found.</p>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
-                <TabsContent value="policies" className="p-8">
-                    <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <Shield className="h-4 w-4" /> Policy History
-                            </CardTitle>
+                <TabsContent value="policies" className="p-0 border-t border-gray-100">
+                    <div className="bg-white overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20 flex flex-row items-center justify-between">
+                            <p className="text-[10px] font-black uppercase text-[#004E98] tracking-[0.2em] flex items-center gap-2">
+                                <Shield className="h-4 w-4" /> A comprehensive record of all past and present insurance contracts held by this client.
+                            </p>
                             {s.policyRenewalDate && (
                                 <Badge className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black">
                                     Renews: {new Date(s.policyRenewalDate).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </Badge>
                             )}
-                        </CardHeader>
-                        <CardContent className="p-0">
+                        </div>
+                        <div className="p-0">
                             {(s.policyHistory || []).length > 0 ? (
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
@@ -807,18 +805,18 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                             ) : (
                                 <p className="text-sm font-bold text-gray-400 italic text-center py-8">No policy history recorded</p>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
-                <TabsContent value="claims" className="p-8 space-y-8">
-                    <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4">
-                            <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4" /> Claims History
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
+                <TabsContent value="claims" className="p-0 border-t border-gray-100">
+                    <div className="bg-white overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
+                            <p className="text-[10px] font-black uppercase text-[#004E98] tracking-[0.2em] flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" /> A log of all insurance claims filed, including their assessment status and payout amounts.
+                            </p>
+                        </div>
+                        <div className="p-0">
                             {(s.claimsHistory || []).length > 0 ? (
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
@@ -854,21 +852,21 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                             ) : (
                                 <p className="text-sm font-bold text-gray-400 italic text-center py-8">No claims recorded</p>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
-                <TabsContent value="payment" className="p-8">
-                    <Card className="border-gray-100 shadow-sm rounded-xl">
-                        <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xs font-black text-[#004E98] uppercase tracking-widest flex items-center gap-2">
-                                <DollarSign className="h-4 w-4" /> Financial Ledger
-                            </CardTitle>
+                <TabsContent value="payment" className="p-0 border-t border-gray-100">
+                    <div className="bg-white overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20 flex flex-row items-center justify-between">
+                            <p className="text-[10px] font-black uppercase text-[#004E98] tracking-[0.2em] flex items-center gap-2">
+                                <DollarSign className="h-4 w-4" /> A ledger of all premium payments received from this stakeholder.
+                            </p>
                             <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-[#004E98]/20 text-[#004E98] bg-[#004E98]/5">
                                 Total: KES {((s.premiumPaymentHistory || []).reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0)).toLocaleString()}
                             </Badge>
-                        </CardHeader>
-                        <CardContent className="p-0">
+                        </div>
+                        <div className="p-0">
                             {(s.premiumPaymentHistory || []).length > 0 ? (
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
@@ -913,14 +911,14 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                             ) : (
                                 <p className="text-sm font-bold text-gray-400 italic text-center py-8">No payments recorded</p>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="activities" className="p-0 border-t border-gray-100">
                     <div className="bg-white overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
-                            <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] flex items-center gap-2">
+                            <h4 className="text-[10px] font-black uppercase text-[#004E98] tracking-[0.2em] flex items-center gap-2">
                                 <History className="h-3 w-3" /> Complaints, queries & Communication history
                             </h4>
                         </div>

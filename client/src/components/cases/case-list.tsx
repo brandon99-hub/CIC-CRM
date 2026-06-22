@@ -357,7 +357,7 @@ export function CaseList({
                                     };
 
                                     return (
-                                        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
+                                        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onCaseClick(c.id)}>
                                             <TableCell className="font-semibold text-[#004E98] whitespace-nowrap">
                                                 <div className="flex flex-col gap-1">
                                                     <span>{c.caseNumber}</span>

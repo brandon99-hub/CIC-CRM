@@ -51,6 +51,7 @@ import { AcceptanceModal } from "@/components/cases/acceptance-modal";
 import { StakeholderProfile, typeIcons, riskColors, formatStakeholderLocalTime } from "@/components/stakeholders/stakeholder-profile";
 import { STAKEHOLDER_TYPE_COLORS } from "@/components/stakeholders/stakeholder-type-colors";
 import { ChatWindow } from "@/components/communications/ChatWindow";
+import { getSegmentDescription } from "@/components/stakeholders/segment-definitions";
 
 
 export default function CaseWorkspace() {
@@ -268,6 +269,15 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
     const TypeIcon = s ? (typeIcons[s.type] || HelpCircle) : UserCircle;
     const dynamicRisk = s?.riskLevel || 'low';
 
+    const stakeholderSegments = s?.tags?.filter((tag: string) => tag.startsWith('seg:')).map((tag: string) => {
+        const id = tag.replace('seg:', '');
+        return {
+            id,
+            name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            description: getSegmentDescription(id)
+        };
+    }) || [];
+
     return (
         <div className="flex flex-col gap-6 max-w-[1600px] mx-auto pb-12">
             {/* UNIFIED SUPER-HEADER */}
@@ -338,11 +348,27 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
                                     <Badge variant="outline" className={`${riskColors[(s as any).aggregatedRisk || dynamicRisk] || "bg-gray-100 text-gray-700"} text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 border-none shadow-sm`}>
                                         {(s as any).aggregatedRisk || dynamicRisk} Risk
                                     </Badge>
-                                    {s.tags?.map((tag: any, idx: number) => (
+                                    {s.tags?.filter((tag: string) => !tag.startsWith('seg:')).map((tag: any, idx: number) => (
                                         <Badge key={`${tag}-${idx}`} variant="secondary" className="bg-gray-100 text-gray-600 px-2.5 py-0.5 font-bold rounded-md text-[10px] uppercase tracking-widest shadow-sm">
                                             {tag}
                                         </Badge>
                                     ))}
+                                    <TooltipProvider>
+                                        {stakeholderSegments.map((seg: any) => (
+                                            <Tooltip key={seg.id} delayDuration={200}>
+                                                <TooltipTrigger asChild>
+                                                    <span className="inline-block cursor-help">
+                                                        <Badge className="bg-[#D0AC01]/10 text-[#D0AC01] px-2.5 py-0.5 font-bold rounded-md text-[10px] uppercase tracking-widest shadow-sm hover:bg-[#D0AC01]/20 transition-colors border-none">
+                                                            {seg.name}
+                                                        </Badge>
+                                                    </span>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-white border border-gray-100 text-gray-700 shadow-xl max-w-[250px] p-3 rounded-lg z-50">
+                                                    <p className="text-xs font-medium leading-relaxed">{seg.description || "Segment connection"}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ))}
+                                    </TooltipProvider>
                                     <div className="flex items-center gap-2 ml-2">
                                         <Clock className="h-4 w-4 text-gray-400" />
                                         <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
@@ -406,6 +432,18 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
                 />
             </div>
 
+            {/* TIER 1.5: ORIGINAL COMMUNICATION */}
+            <div className="w-full">
+                <CommunicationCard
+                    interaction={workspace?.interactions?.[0]}
+                    channel={caseData.channel}
+                    description={caseData.description}
+                    createdAt={caseData.createdAt}
+                    department={department}
+                    category={category}
+                />
+            </div>
+
             {/* TIER 2: EMBEDDED STAKEHOLDER PROFILE */}
             <div className="w-full">
                 {s ? (
@@ -415,7 +453,7 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
                             interactions: workspace.interactions || [],
                             relationships: workspace.relationships || [],
                             cases: workspace.stakeholderCases || [],
-                            segments: workspace.segments || []
+                            segments: stakeholderSegments
                         }}
                         isEmbedded={true}
                         isLoading={false}
@@ -436,20 +474,9 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
 
             {/* TIER 3 & 4: VERTICAL STACK FOR COMMUNICATION AND COLLABORATION */}
             <div className="flex flex-col gap-6 w-full">
-                {/* Original Communication */}
-                <div className="w-full">
-                    <CommunicationCard
-                        interaction={workspace?.interactions?.[0]}
-                        channel={caseData.channel}
-                        description={caseData.description}
-                        assignedAt={caseData.assignedAt}
-                        department={department}
-                        category={category}
-                    />
-                </div>
 
                 {/* Team Discussions / OmniChannel Chat */}
-                <div className="w-full min-h-[600px] h-[600px] flex flex-col border rounded-2xl shadow-sm overflow-hidden bg-white" id="case-chat-window">
+                <div className="w-full min-h-[700px] flex flex-col bg-white" id="case-chat-window">
                     {workspace.conversationId ? (
                         <ChatWindow conversationId={workspace.conversationId} />
                     ) : (
@@ -477,12 +504,12 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
 }
 
 function CommunicationCard({
-    interaction, channel, description, assignedAt, department, category
+    interaction, channel, description, createdAt, department, category
 }: {
     interaction: any;
     channel: string;
     description?: string;
-    assignedAt?: string | null;
+    createdAt?: string | null;
     department?: any;
     category?: any;
 }) {
@@ -503,8 +530,8 @@ function CommunicationCard({
                     <CardTitle className="text-sm font-bold flex items-center gap-2 text-gray-700">
                         {getChannelIcon(channel)} Original Communication
                     </CardTitle>
-                    <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
-                        {assignedAt ? format(new Date(assignedAt), "MMM d, HH:mm") : "Unassigned"}
+                    <span className="text-[11px] text-[#004E98] font-black uppercase tracking-wider bg-[#004E98]/10 px-3 py-1 rounded-full">
+                        {createdAt ? format(new Date(createdAt), "MMM d, HH:mm") : "Unknown Date"}
                     </span>
                 </div>
             </CardHeader>
