@@ -1,0 +1,20 @@
+{
+  "admin.desc": "RBAC, sheria za SLA, minyororo ya kuongezeka, na kumbukumbu za ukaguzi",
+  "admin.title": "Usimamizi wa Mfumo",
+  "cases.desc": "Ufuatiliaji wa njia nyingi, ufuatiliaji wa SLA, na kuongezeka",
+  "cases.title": "Usimamizi wa Kesi & SLA",
+  "communications.desc": "Kikasha cha pamoja, mchapishaji wa kijamii, na mfuatiliaji wa simu",
+  "communications.title": "Kituo cha Mawasiliano",
+  "dashboard.enter_workspace": "Ingia Kwenye Nafasi",
+  "dashboard.restricted": "Ufikiaji Umezuiliwa",
+  "dashboard.restricted_msg": "Akaunti yako haijapewa ruhusa za dashibodi bado. Tafadhali wasiliana na msimamizi wako.",
+  "dashboard.select_workspace": "Chagua nafasi ya kazi ili kudhibiti mfumo wa ikolojia wa CRM.",
+  "dashboard.welcome": "Karibu,",
+  "executive.desc": "Uchambuzi wa KPI, vipimo vya utendaji, na ripoti za mwenendo",
+  "executive.title": "Dashibodi ya Watendaji",
+  "marketing.desc": "Njia ya mauzo, kampeni, tafiti, na uchambuzi wa sekta",
+  "marketing.title": "Masoko & Ushirikiano",
+  "region.switch": "Badilisha Kanda",
+  "stakeholders_dash.desc": "Profaili za wadau za 360°, alama, na ramani ya uhusiano",
+  "stakeholders_dash.title": "Upelelezi wa Wadau"
+}

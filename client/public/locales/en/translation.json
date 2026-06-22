@@ -1,0 +1,20 @@
+{
+  "admin.desc": "RBAC, SLA rules, escalation chains, and audit logs",
+  "admin.title": "System Administration",
+  "cases.desc": "Multi-channel tracking, SLA monitoring, and escalations",
+  "cases.title": "Case Management & SLA",
+  "communications.desc": "Unified inbox, social publisher, and Avaya call monitor",
+  "communications.title": "Communications Hub",
+  "dashboard.enter_workspace": "Enter Workspace",
+  "dashboard.restricted": "Access Restricted",
+  "dashboard.restricted_msg": "Your account has not been provisioned with dashboard permissions yet. Please contact your system administrator to assign roles.",
+  "dashboard.select_workspace": "Select a workspace to manage the CRM ecosystem.",
+  "dashboard.welcome": "Welcome,",
+  "executive.desc": "KPI analytics, performance metrics, and trend reports",
+  "executive.title": "Executive Dashboard",
+  "marketing.desc": "Sales pipeline, campaigns, surveys, and sector analytics",
+  "marketing.title": "Marketing & Engagement",
+  "region.switch": "Switch Region",
+  "stakeholders_dash.desc": "360° stakeholder profiles, scoring, and relationship mapping",
+  "stakeholders_dash.title": "Stakeholder Intelligence"
+}

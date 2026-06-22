@@ -1,0 +1,528 @@
+2.4Scope of services
+The scope of this assignment covers the design, development, deployment, and support of a
+centralized Customer Relationship Management (CRM) system that is tailored to KASNEB’s
+stakeholder engagement and service delivery needs.
+The selected vendor will be expected to undertake the following:
+1. System Design and Functional Requirements
+• Conduct a detailed system analysis and design based on KASNEB’s stakeholder-service
+mapping and institutional workflows.
+• Translate the mapped services into CRM modules including, but not limited to:
+i. Case management (enquiries, requests, complaints)
+ii. Stakeholder profiles and engagement history
+iii. Role-based access and approvals
+iv. SLA monitoring and escalation mechanisms
+v. Communication tracking (email, phone, social media, portal queries)
+vi. Reports and dashboards
+vii. Sales management (leads, opportunities, proposals, pipeline tracking)
+viii. Marketing automation (campaigns, email marketing, social media integration)
+ix. Customer retention and loyalty management (feedback, satisfaction surveys, churn
+prediction)
+x. Collaboration tools (internal notes, team activity tracking, approval workflows)
+2. System Development and Customization
+● Develop or configure the CRM system to meet KASNEB’s business requirements.
+● Ensure system responsiveness, user-friendly interface, and mobile accessibility.
+● Incorporate configurable workflows, service categories, and resolution timelines.
+3. Integration with Existing Systems
+● Integrate the CRM with KASNEB’s ERP (Microsoft Dynamics 365 Business Central) to
+enable visibility of student and financial information.
+● Integrate with other existing systems and portals such as:
+o Student portal
+o Accreditation portal
+o Contact centre system
+o Gmail (for email tracking)
+o Social media platforms (as applicable)
+o SMS Gateway
+o ESS Portal
+o Markers’ Portal
+o Setters’ Portal
+o Employers’ Portal
+o MyLOFT
+
+4. Security, Access Control, and Compliance
+● Implement role-based access control with proper authentication protocols.
+● Ensure compliance with the Data Protection Act and internal information security
+standards.
+● Include comprehensive audit logging of user actions.
+5. Testing and Quality Assurance
+● Conduct unit, system, and user acceptance testing (UAT) in collaboration with KASNEB’s
+ICT and user departments.
+● Facilitate bug fixing and performance tuning based on test outcomes.
+6. Training and Knowledge Transfer
+● Provide detailed training for system administrators, end users, and supervisors across
+relevant directorates.
+● Deliver user manuals and system documentation.
+7. Deployment and Go-Live Support
+● Deploy the CRM system in a secure production environment.
+● Provide on-site support during go-live and stabilization phase.
+8. Post-Implementation Support and Maintenance
+● Provide a warranty period for support, bug fixes, and performance monitoring.
+● Recommend and optionally offer a Service Level Agreement (SLA) for extended
+technical support and maintenance.
+2.5 Key Functional Requirements
+To inform the functional requirements of the proposed CRM system, the following section
+outlines:
+● The core service workflows reflecting typical stakeholder interactions across KASNEB.
+● The indicative CRM functional areas that the system is expected to support.
+A. Service Workflows
+To inform the functional requirements of the proposed CRM system, the following sample
+workflows illustrate how KASNEB currently handles stakeholder interactions related to customer
+enquiries, complaints, and service requests.
+These workflows are not exhaustive but represent the core case-handling and escalation
+processes expected to be supported by the CRM.
+The listed workflows are indicative and based on customer service touchpoints analyzed during
+the initial scoping.
+The successful bidder will be required to conduct a comprehensive business process analysis
+across all relevant departments
+No Workflow High Level Steps
+1 General Enquiry Handling 1. Enquiry is received via email, call, portal, walk-in,
+or Huduma Centre,(provide all touch points).
+2. CRM user logs the enquiry and a case number is
+automatically generated.
+3. The enquiry is categorized based on subject (e.g.
+registration, results, fees).
+4. CRM assigns the case to the relevant
+division/officer based on the category.
+5. Assigned officer opens the case and checks for
+required information.
+6. Officer searches within CRM or pulls data from
+ERP (e.g. registration status, exam timetable).
+7. If the information is available:
+⮚ Officer prepares and sends a response to
+the stakeholder.
+⮚ Case is updated to "Resolved" and closed.
+8. If the information is not available:
+⮚ Officer adds internal notes and escalates
+the case to a supervisor or relevant
+department.
+⮚ Case status is updated to "Escalated".
+9. Escalated officer reviews and provides the
+required input.
+10.Original officer finalizes response to stakeholder.
+11.Case is closed and CRM logs all actions,
+timestamps, and communication history.
+2 Complaint Resolution i. Complaint is received via email, walk-in, Huduma
+Centre, or social media.
+ii. CRM user logs it as a complaint, and a case
+number is generated with a priority level.
+iii. System initiates an SLA countdown timer based
+on service type.
+iv. Case is routed to the responsible officer or
+division.
+v. Assigned officer investigates the issue and, if
+needed, consults ERP data or internal teams.
+vi. Officer updates the case with findings, resolution
+steps, and attaches supporting documents if
+needed.
+vii. Resolution is communicated to the complainant.
+viii. CRM tracks SLA compliance and root cause
+tagging.
+ix. Case is closed and archived for reporting.
+3 Service Request Processing 1. Service request is received via email, portal
+submission, or physical form (e.g. deferral,
+confirmation letter, certificate authentication).
+2. CRM user logs the request in the system and a
+case number is automatically generated.
+3. CRM prompts the user to select the service
+category and attach any relevant documents.
+
+No Workflow High Level Steps
+4. The request is assigned to the appropriate officer
+or service desk team.
+5. Assigned officer accesses stakeholder
+information by retrieving supporting data from the
+ERP (e.g. registration status, payment status,
+exam history).
+6. Officer verifies the request against applicable
+rules or requirements.
+7. If request meets requirements:
+⮚ Officer proceeds to the approval workflow within
+CRM (may include supervisor or manager
+approval).
+⮚ Once approved, CRM notifies the stakeholder
+and updates case status.
+⮚ If necessary, CRM triggers an update to the ERP
+(e.g. to record a deferral or issue a certificate).
+8. If request is incomplete or invalid:
+⮚ Officer updates the case with the reason and
+may request additional information from the
+stakeholder.
+⮚ Alternatively, the case is declined with an
+appropriate note and communicated via CRM.
+9. Throughout the process, all actions are
+timestamped and added to the case history.
+10.Upon completion, the case is marked as
+"Resolved" or "Closed", and the CRM logs the
+entire process for audit and reporting.
+4 Interdepartmental Referral 1. A case (enquiry, request, or complaint) is logged
+in CRM and assigned to a division (e.g. Exams).
+2. The assigned officer reviews the case and
+determines that another department's input or
+action is required.
+3. Using CRM's referral function, the officer
+internally forwards the case to the relevant
+division (e.g. Finance, Legal).
+4. CRM notifies the receiving department/officer and
+logs the handover.
+5. The receiving officer opens the case and
+performs their action or provides a response.
+6. They update the case in CRM, adding internal
+notes or resolution status.
+7. The case either:
+⮚ Is finalized by the second department, or
+⮚ Returns to the originating officer for final
+communication with the stakeholder.
+8. The originating officer confirms resolution and
+closes the case.
+9. CRM records full referral history, timestamps,
+and all actions across departments.
+5 Follow-Up and Escalation 1. A case is logged and assigned to the responsible
+officer, along with its SLA timer (based on the
+service type).
+2. CRM begins tracking time from the moment the
+case is created.
+No Workflow High Level Steps
+3. As the SLA deadline approaches:
+⮚ CRM automatically sends a reminder/alert to the
+assigned officer.
+⮚ The officer may take action, update progress, or
+resolve the case.
+4. If the officer does not act in time:
+⮚ CRM auto-escalates the case to a supervisor or
+designated senior staff based on escalation rules.
+5. The supervisor receives a notification and opens
+the case.
+6. Supervisor reviews the case, internal notes, and
+elapsed time.
+7. The case may be:
+⮚ Reassigned to a new officer.
+⮚ Intervened directly by the supervisor.
+⮚ Reclassified or flagged for urgent attention.
+8. CRM records the escalation timestamp, reason,
+and who took over.
+9. Once resolved, the case is closed and marked
+accordingly.
+10.Escalation history is available in audit logs and
+SLA compliance reports.
+B Indicative CRM Functional Areas (Marketing and Communication Use Case)
+The following modules and capabilities are indicative of the functionalities expected under the proposed
+CRM system. Bidders are encouraged to demonstrate these in their technical proposal and demo, and
+to explain how their solution supports these areas.
+1. Sales Management
+● Lead & Opportunity Tracking – Capture, qualify, and nurture leads.
+● Pipeline Management – Visualize sales stages and forecast revenue.
+● Deal & Proposal Management – Track negotiations and close deals faster.
+● Automated Sales Processes – Set reminders, follow-ups, and workflows.
+2. Marketing Automation
+● Campaign Management – Plan, execute, and track marketing campaigns.
+● Email Marketing – Send personalized bulk emails and track engagement.
+● Lead Scoring – Prioritize leads based on engagement and behavior.
+● Social Media Integration – Manage and track social interactions.
+3. Customer Service & Support
+● Ticketing System – Log, assign, and resolve customer issues.
+● Knowledge Base / Self-Service – Provide FAQs and help articles.
+● Live Chat & Chatbots – Offer real-time support.
+● Customer Feedback & Surveys – Collect and analyze feedback.
+4. Contact & Account Management
+● Centralized Customer Database – Store contact details, interactions, and history.
+● Segmentation – Group customers based on behaviour, demographics, etc.
+Relationship Tracking – Log calls, meetings, and emails automatically.
+5. Analytics & Reporting
+● Dashboards & KPIs – Track sales performance, customer satisfaction, etc.
+● Custom Reports – Generate insights on revenue, churn rate, and trends.
+● Predictive Analytics – Forecast sales and customer behaviour.
+6. Workflow & Process Automation
+● Task Automation – Automate repetitive tasks (e.g., follow-up emails).
+● Approval Workflows – Streamline internal processes (e.g., discounts, contracts).
+● AI-Powered Insight – Suggest next best actions for sales or support.
+● Upsell/Cross-sell Recommendations – Suggest related products/services.
+7. Customer Retention & Loyalty Programs
+● Loyalty Tracking – Reward repeat customers with points/discounts.
+● Personalized Engagement – Send tailored offers and recommendations.
+8. Collaboration & Team Management
+● Internal Communication – Share notes and updates within teams.
+● Role-Based Access – Control data visibility for different users.
+● Activity Tracking – Monitor team performance and productivity.
+Key Functional requirements:
+No. Feature Description Compliance
+Yes/No
+1 Case Logging &
+Numbering
+System must allow users to log enquiries, complaints,
+and requests from multiple channels with a systemgenerated case number.
+2 Service
+Categorization
+Users must be able to categorize cases by service type
+(e.g. exams, finance, registration)
+3 Role-Based
+Assignment
+Cases should be assigned to officers automatically or
+manually based on service category and roles.
+4 ERP Integration
+for Lookups
+Officers should be able to access student or finance data
+(e.g. registration, payments) from ERP within the CRM.
+5 SLA
+Configuration
+System should allow configuration of response/resolution
+timelines based on KASNEB’s service charter.
+6 SLA Countdown
+& Alerts
+System should track elapsed time for each case and send
+alerts before SLA breaches.
+7 Case Escalation System should auto-escalate unresolved cases to
+supervisors after SLA deadline is missed.
+8 Multi-Channel
+Intake
+CRM should support case intake from email, portal, social
+media, walk-in, Huduma, and call center.
+9 Internal Referral
+Workflow
+Users should be able to refer cases internally to another
+department without losing history.
+10 Case History &
+Notes
+All actions, communications, and notes related to a case
+must be recorded and timestamped.
+11 Stakeholder
+Profile
+Management
+Maintain stakeholder profiles and show their complete
+engagement history across all cases.
+12 Communication
+Tracking
+Log inbound and outbound communications
+(email/SMS/calls) within each case.
+13 Email
+Integration
+System should integrate with Gmail to send and receive
+emails directly within CRM.
+14 SMS
+Notifications
+Ability to send SMS alerts/updates to stakeholders
+through the CRM.
+15 Task & Followup Management
+Enable task assignment, due dates, and reminders linked
+to cases.
+16 Supervisor
+Dashboard
+Supervisors should see escalated cases, overdue tickets,
+and workload summaries.
+17 Service Reports Generate reports on service volumes, case types, SLA
+performance, resolution rates, etc.
+18 Custom
+Dashboards
+Visual dashboards by department, officer, or case status
+for management use.
+9 Audit Trail Track all user activity and case history for accountability
+No. Feature Description Compliance
+Yes/No
+20 Knowledge
+Base
+Module for internal FAQs and reference material linked to
+services.
+21 Attachment
+Handling
+Support uploading and linking of supporting documents to
+cases.
+22 Role-Based
+Access Control
+Restrict access to features and cases based on user
+roles.
+23 Mobile-Friendly
+Interface
+CRM should be accessible and usable on mobile devices.
+24 Data Protection
+Compliance
+System must comply with Kenya Data Protection Act and
+related security policies.
+25 User and Admin
+Training
+Vendor to provide training sessions and materials for both
+end users and administrators.
+26 Workflow
+Configuration
+Enable administrators to configure workflows, approvals,
+routing, and service categories.
+27 Integration with
+Existing Portals
+CRM must integrate with KASNEB's portals (student,
+accreditation, etc.) as needed.
+28 User
+Notification
+Settings
+Users should be able to control how they receive
+notifications (email, dashboard alerts).
+29 Case Search
+and Filtering
+Allow searching and filtering of cases by status, type,
+stakeholder, and date.
+30 Export and Print
+Support
+Enable export of cases and reports to PDF, Excel, or
+printable formats.
+31 Customer
+Feedback
+Collection
+Allow feedback or satisfaction rating after case closure to
+track service quality.
+32
+Lead &
+Opportunity
+Tracking
+Capture, qualify, assign, and nurture leads across
+departments. Track progression from interest to deal
+closure.
+33 Sales Pipeline
+Management
+Visualize the stages of the sales process and forecast
+potential revenue.
+34 Campaign
+Management
+Plan, schedule, execute, and monitor marketing
+campaigns across email, SMS, or social media.
+35 Email Marketing Send personalized bulk emails to segmented groups;
+track open/click rates.
+36 Social Media
+Integration
+Allow publishing, responding, and analytics tracking of
+social media posts and DMs.
+37 Lead Scoring Automatically assign scores to leads based on behavior
+and engagement levels.
+38 Deal & Proposal
+Management
+Store and track sales proposals and quotations linked to
+opportunities.
+39 Marketing
+Automation
+Automate follow-ups, lead nurturing, and scoring based
+on engagement.
+40 Live Chat &
+Chatbots
+Provide live chat and automated chatbot responses on
+the website or portal.
+41 Ticketing
+System
+Customer support module for managing service issues,
+suggestions, and escalations.
+42 Knowledge
+Base / FAQs
+Enable stakeholders to self-serve using searchable help
+content.
+43 Feedback &
+Surveys
+Collect satisfaction surveys or feedback forms postservice or post-campaign.
+No. Feature Description Compliance
+Yes/No
+44
+Loyalty
+Program
+Tracking
+Reward loyal stakeholders with engagement points,
+discounts, or perks.
+45 Churn
+Prediction
+Analyze user behavior to predict and alert about potential
+disengagement.
+46 Contact
+Segmentation
+Group stakeholders by behavior, demographic, or
+interaction history.
+47 Internal Notes &
+Communication
+Allow inter-team communication and notes within contact
+or deal records.
+48
+Role-Based
+Access for
+Sales/Marketing
+Control access to sensitive CRM data by user role or
+team.
+49
+Custom
+Sales/Marketing
+Dashboards
+Visual dashboards to track campaigns, lead status, and
+ROI.
+50 Predictive
+Analytics
+Use historical CRM data to predict outcomes and
+recommend next actions.
+51 Workflow
+Automation
+Automatically route leads, set tasks, reminders, or
+approvals based on defined triggers.
+
+Key Technical requirements
+ The following is a summary of key system requirements:
+No. Feature Description Compliance
+(Yes/No)
+1 Web-Based
+Access
+CRM should be accessible via modern web
+browsers and support secure remote access.
+2 Role-Based
+Access
+Control
+Restrict access to case data and system
+functions based on user roles (e.g., frontline,
+supervisor, admin).
+3 Integration
+with ERP
+(NAV BC)
+Secure API integration with Microsoft Dynamics
+NAV to fetch student and finance data.
+4 Email
+Integration
+(Gmail)
+Connect with Gmail to allow email logging,
+sending, and receiving within the CRM.
+5 SMS
+Gateway
+Integration
+Integration to send SMS updates to
+stakeholders.
+6 Responsive
+Mobile UI
+Ensure the CRM is fully usable on mobile
+devices and tablets.
+7 Data
+Encryption
+Encrypt data at rest and in transit to ensure data
+security and privacy.
+8 Audit
+Logging
+Log all user activity including case updates,
+access, and changes.
+9 Cloud and
+On-Premise
+Deployment
+Allow deployment on cloud and On-Prem within
+KASNEB’s internal infrastructure.
+No. Feature Description Compliance
+(Yes/No)
+10 Data
+Protection
+Compliance
+System must comply with Kenya’s Data Protection
+Act and internal ICT policies.
+11 Custom
+Workflow
+Engine
+Allow administrators to configure workflows,
+SLAs, and escalation rules.
+12 API Support
+for Portals
+Enable CRM to integrate with KASNEB’s other
+portals (student, accreditation, etc.) via API.
+13 Dashboards
+and
+Visualization
+Support visual dashboards for SLA,
+performance, and service analytics.
+14 Scalability System should scale to support future growth in
+stakeholders, users, and data.
+15 Scheduled
+Backups &
+Recovery
+Support daily backups and recovery
+mechanisms for business continuity.

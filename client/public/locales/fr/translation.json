@@ -1,0 +1,20 @@
+{
+  "admin.desc": "RBAC, règles SLA, chaînes d'escalade et journaux d'audit",
+  "admin.title": "Administration Système",
+  "cases.desc": "Suivi multi-canal, surveillance SLA et escalades",
+  "cases.title": "Gestion des Cas & SLA",
+  "communications.desc": "Boîte de réception unifiée, publications sociales et moniteur d'appels",
+  "communications.title": "Hub de Communications",
+  "dashboard.enter_workspace": "Entrer dans l'espace",
+  "dashboard.restricted": "Accès Restreint",
+  "dashboard.restricted_msg": "Votre compte n'a pas encore de permissions. Veuillez contacter votre administrateur système.",
+  "dashboard.select_workspace": "Sélectionnez un espace de travail pour gérer l'écosystème CRM.",
+  "dashboard.welcome": "Bienvenue,",
+  "executive.desc": "Analyses KPI, métriques de performance et rapports de tendances",
+  "executive.title": "Tableau de Bord Exécutif",
+  "marketing.desc": "Pipeline des ventes, campagnes, enquêtes et analyses",
+  "marketing.title": "Marketing & Engagement",
+  "region.switch": "Changer de Région",
+  "stakeholders_dash.desc": "Profils 360°, scores et cartographie des relations",
+  "stakeholders_dash.title": "Intelligence des Parties Prenantes"
+}

@@ -1,0 +1,40 @@
+admin-dashboard.tsx:1951 Uncaught TypeError: roles.map is not a function
+    at AdminDashboard (admin-dashboard.tsx:1951:26)
+    at renderWithHooks (chunk-KDCVS43I.js?v=8031ec02:11596:26)
+    at updateFunctionComponent (chunk-KDCVS43I.js?v=8031ec02:14630:28)
+    at beginWork (chunk-KDCVS43I.js?v=8031ec02:15972:22)
+    at HTMLUnknownElement.callCallback2 (chunk-KDCVS43I.js?v=8031ec02:3680:22)
+    at Object.invokeGuardedCallbackDev (chunk-KDCVS43I.js?v=8031ec02:3705:24)
+    at invokeGuardedCallback (chunk-KDCVS43I.js?v=8031ec02:3739:39)
+    at beginWork$1 (chunk-KDCVS43I.js?v=8031ec02:19818:15)
+    at performUnitOfWork (chunk-KDCVS43I.js?v=8031ec02:19251:20)
+    at workLoopSync (chunk-KDCVS43I.js?v=8031ec02:19190:13)Understand this error
+chunk-KDCVS43I.js?v=8031ec02:14080 The above error occurred in the <AdminDashboard> component:
+
+    at AdminDashboard (https://d8840c1f-29a2-448f-b382-6fa57fa5f8a6-00-jw67okvrjj3y.worf.replit.dev/src/pages/admin-dashboard.tsx:106:27)
+    at Suspense
+    at DashboardGuard (https://d8840c1f-29a2-448f-b382-6fa57fa5f8a6-00-jw67okvrjj3y.worf.replit.dev/src/App.tsx:57:27)
+    at Route (https://d8840c1f-29a2-448f-b382-6fa57fa5f8a6-00-jw67okvrjj3y.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8031ec02:226:16)
+    at Switch (https://d8840c1f-29a2-448f-b382-6fa57fa5f8a6-00-jw67okvrjj3y.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8031ec02:283:17)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-KDCVS43I.js?v=8031ec02:14080Understand this error
+chunk-KDCVS43I.js?v=8031ec02:19466 Uncaught TypeError: roles.map is not a function
+    at AdminDashboard (admin-dashboard.tsx:1951:26)
+    at renderWithHooks (chunk-KDCVS43I.js?v=8031ec02:11596:26)
+    at updateFunctionComponent (chunk-KDCVS43I.js?v=8031ec02:14630:28)
+    at beginWork (chunk-KDCVS43I.js?v=8031ec02:15972:22)
+    at beginWork$1 (chunk-KDCVS43I.js?v=8031ec02:19806:22)
+    at performUnitOfWork (chunk-KDCVS43I.js?v=8031ec02:19251:20)
+    at workLoopSync (chunk-KDCVS43I.js?v=8031ec02:19190:13)
+    at renderRootSync (chunk-KDCVS43I.js?v=8031ec02:19169:15)
+    at recoverFromConcurrentError (chunk-KDCVS43I.js?v=8031ec02:18786:28)
+    at performConcurrentWorkOnRoot (chunk-KDCVS43I.js?v=8031ec02:18734:30)Understand this error
+client:802 WebSocket connection to 'wss://d8840c1f-29a2-448f-b382-6fa57fa5f8a6-00-jw67okvrjj3y.worf.replit.dev:24678/?token=fCUUZeJ6xt_B' failed: 
+createConnection @ client:802Understand this error
+client:841 [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+connect @ client:841Understand this error
+client:454 Uncaught (in promise) Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:454:22)Understand this error

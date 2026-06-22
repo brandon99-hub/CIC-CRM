@@ -1,0 +1,47 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+
+# Build artifacts
+dist/
+build/
+.next/
+.serverless/
+.output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.production
+.env.development
+.env.local
+.env.*.local
+*.env
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Replit & System
+.config/
+.local/
+Thumbs.db
+replit.nix
+
+# Database
+*.db
+*.sqlite

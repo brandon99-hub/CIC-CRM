@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(210 11% 15%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(210 11% 15%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(210 11% 15%);
+  --color-primary: hsl(209 100% 30%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(148 99% 33%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(208 7% 46%);
+  --color-accent: hsl(50 99% 41%);
+  --color-accent-foreground: hsl(210 11% 15%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(209 100% 30%);
+  --radius: 0.5rem;
+
+  --color-kasneb-blue: #004E98;
+  --color-kasneb-blue-light: #0066a2;
+  --color-kasneb-green: #01a64e;
+  --color-kasneb-green-dark: #006341;
+  --color-kasneb-gold: #D0AC01;
+  --color-kasneb-gold-dark: #bb8114;
+  --color-kasneb-orange: #e55f00;
+
+  --animate-in: animateIn 0.2s ease-out;
+  --animate-out: animateOut 0.2s ease-in;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes animateIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes animateOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+@layer utilities {
+  .claymorphism-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      10px 10px 20px rgba(0, 0, 0, 0.05),
+      -10px -10px 20px rgba(255, 255, 255, 0.8),
+      inset 4px 4px 8px rgba(255, 255, 255, 0.5),
+      inset -4px -4px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .claymorphism-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      15px 15px 30px rgba(0, 0, 0, 0.08),
+      -15px -15px 30px rgba(255, 255, 255, 0.9),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.6),
+      inset -2px -2px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  .claymorphism-inner-shadow {
+    box-shadow: 
+      inset 4px 4px 8px rgba(0, 0, 0, 0.05),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+}

@@ -1,0 +1,46 @@
+export {
+  marketingUsers,
+  marketingSectors,
+  marketingProjects,
+  marketingProspects,
+  marketingSalesWon,
+  marketingExpectedOrders,
+  marketingAnnualSummary,
+  marketingLostProjects,
+} from "../Marketing/shared/schema";
+
+export {
+  systemRoles,
+  systemPermissions,
+  systemRolePermissions,
+  departments,
+  serviceCategories,
+  slaRules,
+  escalationChains,
+  escalationSteps,
+  workflowRules,
+  regions,
+  shifts,
+  userShifts,
+  queues,
+  userQueues,
+} from "../Marketing/shared/adminSchema";
+
+export {
+  integrationConfigs,
+  auditLogs,
+  stakeholders,
+  stakeholderInteractions,
+  stakeholderRelationships,
+  cases,
+  caseComments,
+  caseAttachments,
+  caseHistory,
+  knowledgeBase,
+  campaigns,
+  feedbackSurveys,
+  feedbackResponses,
+  communications,
+  userNotifications,
+  userPreferences,
+} from "../Marketing/shared/crmSchema";
