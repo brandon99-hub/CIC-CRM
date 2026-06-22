@@ -54,7 +54,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 app.use(cors({
   origin: process.env.NODE_ENV === "production"
-    ? "https://kasneb-crm.onrender.com"
+    ? ["https://kasneb-crm.onrender.com", "https://cic-crm.onrender.com"]
     : ["http://localhost:5001", "http://localhost:5173", "http://127.0.0.01:5001", "ws://localhost:24678"],
   credentials: true,
 }));
