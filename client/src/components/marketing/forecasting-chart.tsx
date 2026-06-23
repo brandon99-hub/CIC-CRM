@@ -586,7 +586,7 @@ export function ForecastingChart({
                         <Card className={`border-none shadow-sm rounded-2xl p-6 ring-1 ring-black/[0.03] ${dormantStudentCount > 0 ? 'bg-red-50/20 border border-red-100' : 'bg-white'}`}>
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-[2px] mb-1">Dormant Students</p>
                             <h3 className={`text-xl font-black tracking-tight ${dormantStudentCount > 0 ? 'text-red-600' : 'text-slate-800'}`}>{dormantStudentCount}</h3>
-                            <p className="text-[10px] text-gray-500 mt-2 font-semibold">Exceeds 120-day KASNEB exam sitting cycle</p>
+                            <p className="text-[10px] text-gray-500 mt-2 font-semibold">Exceeds 120-day CIC policy renewal cycle</p>
                         </Card>
                     </div>
 

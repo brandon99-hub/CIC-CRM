@@ -62,6 +62,7 @@ export function SimulationTab({ onTriggerScenario, onSimulateSignal }: Simulatio
     const [loading, setLoading] = useState<string | null>(null);
     const [batchCount, setBatchCount] = useState(1);
     const [customSignal, setCustomSignal] = useState({ source: "email", text: "" });
+    const [marketingSimType, setMarketingSimType] = useState<"b2c" | "b2b">("b2c");
 
     const handleScenario = async (slug: string, label: string) => {
         setLoading(slug);
@@ -109,6 +110,32 @@ export function SimulationTab({ onTriggerScenario, onSimulateSignal }: Simulatio
             if (!res.ok) throw new Error("Failed to seed stakeholders");
             const data = await res.json();
             toast({ title: "Success", description: data.message });
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setLoading(null);
+        }
+    };
+
+    const handleSimulateMarketingLeads = async () => {
+        setLoading("marketing-leads");
+        try {
+            const token = localStorage.getItem("marketingToken");
+            const res = await fetch("/api/simulate/marketing-leads", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    pipelineType: marketingSimType,
+                    volume: batchCount > 5 ? batchCount : 10,
+                    spreadStages: true
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || data.error || "Failed to generate marketing leads");
+            toast({ title: "Marketing Leads Generated", description: data.message });
         } catch (err: any) {
             toast({ title: "Error", description: err.message, variant: "destructive" });
         } finally {
@@ -176,6 +203,36 @@ export function SimulationTab({ onTriggerScenario, onSimulateSignal }: Simulatio
                             {loading === "seed" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Users className="h-4 w-4 mr-2" />}
                             Seed
                         </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Simulate Marketing Leads */}
+                <Card className="bg-blue-50/50 border-blue-200 border-dashed">
+                    <CardContent className="py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Briefcase className="h-5 w-5 text-blue-600" />
+                            <div>
+                                <p className="text-sm font-bold text-blue-700">Simulate Marketing Leads</p>
+                                <p className="text-xs text-blue-600/70">Generate B2C or B2B pipeline test data</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Select value={marketingSimType} onValueChange={(v: "b2c" | "b2b") => setMarketingSimType(v)}>
+                                <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="b2c">B2C Retail</SelectItem>
+                                    <SelectItem value="b2b">B2B Group</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold h-9"
+                                disabled={!!loading}
+                                onClick={handleSimulateMarketingLeads}
+                            >
+                                {loading === "marketing-leads" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Briefcase className="h-4 w-4 mr-2" />}
+                                Generate
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 

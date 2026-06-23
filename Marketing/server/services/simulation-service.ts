@@ -2,7 +2,8 @@ import { db } from "../db";
 import { marketingUsers } from "../../shared/schema";
 import { stakeholders, intakeSignals, cases, caseHistory, caseComments, caseAttachments, stakeholderInteractions, stakeholderRelationships } from "../../shared/crmSchema";
 import { DiscoveryService } from "./discovery-service";
-import { serviceCategories, systemRoles, slaRules } from "../../shared/adminSchema";
+import { serviceCategories, systemRoles, slaRules, departments } from "../../shared/adminSchema";
+import { cicLeads } from "../../shared/cicSchema";
 import { IntakeSignal } from "./categorization-service";
 import { NLPService } from "./nlp-service";
 import { AssignmentService } from "./assignment-service";
@@ -509,12 +510,14 @@ export const SimulationService = {
 
     /**
      * Simulates an inbound signal from any CIC client touchpoint.
-     * Runs NLP categorisation → stakeholder matching → case creation → auto-assignment.
+     * Runs NLP categorisation (or uses forceCategoryId) → stakeholder matching → case creation → auto-assignment.
      */
-    async simulateSignal(signal: IntakeSignal) {
+    async simulateSignal(signal: IntakeSignal, forceCategoryId?: string) {
         console.log(`[Simulation] Processing CIC signal from ${signal.source}: "${signal.text.substring(0, 60)}..."`);
 
-        const nlpResult = await NLPService.matchCategory(signal.text);
+        let nlpResult = forceCategoryId 
+            ? { categoryId: forceCategoryId, confidence: 99, tokensFound: ["forced_simulation"] }
+            : await NLPService.matchCategory(signal.text);
 
         let finalStakeholderId = await StakeholderMatchingService.matchFromMetadata(signal.metadata || {});
         if (finalStakeholderId) {
@@ -566,6 +569,62 @@ export const SimulationService = {
             const [targetCategory] = await db.select().from(serviceCategories).where(eq(serviceCategories.id, nlpResult.categoryId)).limit(1);
 
             if (targetCategory) {
+                // Check if target category belongs to the Marketing department
+                let isMarketingDept = false;
+                if (targetCategory.departmentId) {
+                    const [dept] = await db.select().from(departments).where(eq(departments.id, targetCategory.departmentId)).limit(1);
+                    if (dept && (dept.code === 'MRK' || dept.isMarketingDepartment || dept.name === 'Marketing')) {
+                        isMarketingDept = true;
+                    }
+                }
+
+                if (isMarketingDept) {
+                    // Fork: Create a Pipeline Lead directly
+                    const yearShort = new Date().getFullYear().toString().slice(-2);
+                    const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+                    const caseNumber = `CIC-${yearShort}-${random}`; // we'll use this format for the leadRef
+
+                    const pType = signal.metadata?.pipelineType || (signal.metadata?.organization ? 'b2b' : 'b2c');
+                    
+                    await db.insert(cicLeads).values({
+                        leadRef: `LEAD-${caseNumber}`,
+                        pipelineType: pType,
+                        productLine: signal.metadata?.productLine || "motor",
+                        sourceChannel: signal.source || "referral",
+                        firstName: signal.metadata?.firstName || "Unknown",
+                        lastName: signal.metadata?.lastName || "Client",
+                        organisationName: signal.metadata?.organization || null,
+                        phone: signal.metadata?.phone || "TBD",
+                        email: signal.metadata?.email || "TBD",
+                        stage: signal.metadata?.stage_hint || "lead",
+                        referredByStakeholderId: finalStakeholderId || null,
+                        county: signal.metadata?.county || null
+                    } as any);
+
+                    await db.update(intakeSignals).set({
+                        status: "mapped"
+                    }).where(eq(intakeSignals.id, intakeSignal.id));
+
+                    if (finalStakeholderId) {
+                        await db.insert(stakeholderInteractions).values({
+                            stakeholderId: finalStakeholderId,
+                            caseId: null, // No case ID because it's a lead
+                            type: "portal_submission",
+                            channel: signal.source as any,
+                            direction: "inbound",
+                            subject: "Marketing Inquiry",
+                            description: signal.text,
+                            metadata: signal.metadata || {},
+                            date: new Date().toISOString()
+                        } as any);
+                        console.log(`[Simulation] Auto-created Pipeline Lead directly for stakeholder ${finalStakeholderId}`);
+                    }
+
+                    // Return early so we don't create a Case
+                    return;
+                }
+
+                // Normal Case Generation Flow
                 const yearShort = new Date().getFullYear().toString().slice(-2);
                 const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
                 const caseNumber = `CIC-${yearShort}-${random}`;

@@ -1,5 +1,5 @@
 /**
- * Notification Templates for KASNEB CRM Marketing System
+ * Notification Templates for CIC CRM Marketing System
  * Elegance and minimalism are prioritized.
  */
 
@@ -52,7 +52,7 @@ export const NOTIFICATION_TEMPLATES = {
         <a href="https://localhost:5173/marketing/activities" class="button">View Activity Breakdown</a>
         
         <div class="footer">
-          &copy; \${new Date().getFullYear()} KASNEB CRM Marketing System. All rights reserved.
+          &copy; \${new Date().getFullYear()} CIC CRM Marketing System. All rights reserved.
         </div>
       </div>
     </body>
@@ -60,7 +60,7 @@ export const NOTIFICATION_TEMPLATES = {
   `,
 
   sms: (activity: any) => 
-    `[KASNEB CRM] REMINDER: \${activity.type.toUpperCase()} - \${activity.subject}. Scheduled for today at \${activity.startTime || 'specified time'}. View details on the dashboard.`,
+    `[CIC CRM] REMINDER: \${activity.type.toUpperCase()} - \${activity.subject}. Scheduled for today at \${activity.startTime || 'specified time'}. View details on the dashboard.`,
 
   inApp: (activity: any) => ({
     title: `Activity Reminder: \${activity.subject}`,

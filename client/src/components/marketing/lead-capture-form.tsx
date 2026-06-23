@@ -88,7 +88,7 @@ export function LeadCaptureForm({ campaignId, campaignType }: LeadCaptureFormPro
           </div>
           <div>
             <CardTitle className="text-2xl font-black uppercase tracking-tight">Express Interest</CardTitle>
-            <CardDescription className="text-blue-100 font-medium">Get personalized guidance from KASNEB experts.</CardDescription>
+            <CardDescription className="text-blue-100 font-medium">Get personalized guidance from CIC experts.</CardDescription>
           </div>
         </div>
       </CardHeader>

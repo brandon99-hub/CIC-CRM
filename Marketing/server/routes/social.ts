@@ -194,7 +194,7 @@ export function registerSocialRoutes(app: Express) {
   // ── GET /api/social/posts/:id/insights ──────────────────────────────────
   app.get("/api/social/posts/:id/insights", marketingAuth, async (req, res) => {
     try {
-      const postId = req.params.id;
+      const postId = req.params.id as string;
       const post = await db.query.socialPosts.findFirst({ where: eq(socialPosts.id, postId) });
       
       if (!post) return res.status(404).json({ error: "Post not found" });

@@ -15,6 +15,7 @@ declare global {
         firstName: string;
         lastName: string;
         role: string;
+        bdType?: string;
         permissions?: string[];
       };
     }
@@ -38,28 +39,18 @@ export interface MarketingJWTPayload {
 // Marketing Authentication Middleware
 export const marketingAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.auth_token;
+    let token = req.cookies?.auth_token;
+    
+    // Check for Bearer token from headers first
+    const authHeader = req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const extractedToken = authHeader.replace('Bearer ', '').trim();
+      if (extractedToken && extractedToken !== 'null' && extractedToken !== 'undefined') {
+        token = extractedToken;
+      }
+    }
 
     if (!token) {
-      // Allow internal/programmatic callers that might use Bearer tokens
-      const origin = req.headers.origin;
-      const isAllowedProgrammaticCaller = !origin || origin === process.env.INTERNAL_SERVICE_ORIGIN;
-      if (isAllowedProgrammaticCaller) {
-        const bearerToken = req.header('Authorization')?.replace('Bearer ', '');
-        if (bearerToken) {
-          try {
-            const decoded = jwt.verify(bearerToken, JWT_SECRET) as MarketingJWTPayload;
-            // Get user from database...
-            const user = await db.select().from(marketingUsers).where(eq(marketingUsers.id, decoded.userId)).limit(1);
-            if (user.length > 0 && user[0].isActive) {
-               req.marketingUser = { id: user[0].id, email: user[0].email, firstName: user[0].firstName, lastName: user[0].lastName, role: user[0].role };
-               return next();
-            }
-          } catch (err) {
-             return res.status(401).json({ error: 'Invalid bearer token.' });
-          }
-        }
-      }
       return res.status(401).json({ error: 'Access denied. No valid cookie or token provided.' });
     }
 
@@ -96,6 +87,7 @@ export const marketingAuth = async (req: Request, res: Response, next: NextFunct
       firstName: user[0].firstName,
       lastName: user[0].lastName,
       role: user[0].role,
+      bdType: user[0].bdType || "b2b", // fallback just in case
       permissions: permissions.map(p => p.key),
     };
 

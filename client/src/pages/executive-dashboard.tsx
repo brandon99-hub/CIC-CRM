@@ -193,7 +193,7 @@ export default function ExecutiveDashboard() {
   const handleExport = (type: string) => {
     const doc = new jsPDF();
     const timestamp = new Date().toLocaleString();
-    const logoUrl = "/logo.webp";
+    const logoUrl = "/assets/cic-logo.svg";
     const primaryColor: [number, number, number] = [0, 78, 152]; // #004E98
     const reportYear = new Date().getFullYear();
 

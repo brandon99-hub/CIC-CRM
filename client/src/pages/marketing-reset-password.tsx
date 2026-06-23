@@ -101,7 +101,7 @@ export default function MarketingResetPassword() {
             <div className="text-center">
               <img
                 src="/logo.webp"
-                alt="KASNEB Logo"
+                alt="CIC Insurance Group Logo"
                 className="h-16 w-auto mx-auto mb-6"
               />
               <CardTitle className="text-2xl font-bold text-gray-900">Reset Password</CardTitle>

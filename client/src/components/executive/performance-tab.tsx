@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { ProgressBar, KASNEB_COLORS } from "./executive-shared";
+import { ProgressBar, CIC_COLORS } from "./executive-shared";
 
 const resolutionTrendData = [
     { month: "Jul", avgHours: 28, target: 24 }, { month: "Aug", avgHours: 26, target: 24 },
@@ -31,9 +31,9 @@ export function PerformanceTab({ slaCompliance }: PerformanceTabProps) {
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {[
-                    { label: "Overall SLA Compliance", value: slaCompliance, target: "90%", color: KASNEB_COLORS.green, display: `${slaCompliance}%` },
-                    { label: "Response Time Compliance", value: 94, target: "95%", color: KASNEB_COLORS.blue, display: "94%" },
-                    { label: "First Contact Resolution", value: 72, target: "75%", color: KASNEB_COLORS.gold, display: "72%" },
+                    { label: "Overall SLA Compliance", value: slaCompliance, target: "90%", color: CIC_COLORS.green, display: `${slaCompliance}%` },
+                    { label: "Response Time Compliance", value: 94, target: "95%", color: CIC_COLORS.blue, display: "94%" },
+                    { label: "First Contact Resolution", value: 72, target: "75%", color: CIC_COLORS.gold, display: "72%" },
                 ].map((kpi) => (
                     <Card key={kpi.label}>
                         <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle></CardHeader>
@@ -51,7 +51,7 @@ export function PerformanceTab({ slaCompliance }: PerformanceTabProps) {
                 <CardContent>
                     <div className="space-y-4">
                         {departmentPerformance.map((dept) => {
-                            const barColor = dept.sla >= 90 ? KASNEB_COLORS.green : dept.sla >= 85 ? KASNEB_COLORS.gold : KASNEB_COLORS.orange;
+                            const barColor = dept.sla >= 90 ? CIC_COLORS.green : dept.sla >= 85 ? CIC_COLORS.gold : CIC_COLORS.orange;
                             return (
                                 <div key={dept.name} className="flex items-center gap-4">
                                     <div className="w-32 text-sm font-medium truncate">{dept.name}</div>
@@ -73,7 +73,7 @@ export function PerformanceTab({ slaCompliance }: PerformanceTabProps) {
                     <CardContent>
                         <div className="space-y-3">
                             {agentPerformance.map((agent) => {
-                                const slaColor = agent.sla >= 95 ? KASNEB_COLORS.green : agent.sla >= 90 ? KASNEB_COLORS.gold : KASNEB_COLORS.orange;
+                                const slaColor = agent.sla >= 95 ? CIC_COLORS.green : agent.sla >= 90 ? CIC_COLORS.gold : CIC_COLORS.orange;
                                 return (
                                     <div key={agent.name} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                                         <div><div className="font-medium text-sm">{agent.name}</div><div className="text-xs text-muted-foreground">{agent.cases} cases · {agent.resolved} resolved</div></div>
@@ -93,8 +93,8 @@ export function PerformanceTab({ slaCompliance }: PerformanceTabProps) {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="month" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} />
                                 <Tooltip /><Legend />
-                                <Area type="monotone" dataKey="avgHours" stroke={KASNEB_COLORS.blue} fill={`${KASNEB_COLORS.blue}20`} strokeWidth={2} name="Avg Hours" />
-                                <Area type="monotone" dataKey="target" stroke={KASNEB_COLORS.orange} fill="none" strokeWidth={2} strokeDasharray="5 5" name="Target" />
+                                <Area type="monotone" dataKey="avgHours" stroke={CIC_COLORS.blue} fill={`${CIC_COLORS.blue}20`} strokeWidth={2} name="Avg Hours" />
+                                <Area type="monotone" dataKey="target" stroke={CIC_COLORS.orange} fill="none" strokeWidth={2} strokeDasharray="5 5" name="Target" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </CardContent>

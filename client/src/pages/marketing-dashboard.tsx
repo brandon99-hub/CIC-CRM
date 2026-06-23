@@ -13,16 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Users, TrendingUp, Target, Plus, FileDown, LogOut, BarChart3, Bell, Menu, X,
   PieChart, Home, UserCheck, XCircle, Megaphone, MessageSquare, ClipboardList, LayoutDashboard,
-  Binoculars, Grid3X3, List, ArrowLeft, FolderOpen, Loader2, FileText, Calendar
+  Binoculars, Grid3X3, List, ArrowLeft, FolderOpen, Loader2, FileText, Calendar, FlaskConical
 } from "lucide-react";
-import { MarketingLeadsTable } from "@/components/marketing/leads-table";
+import { CICPipelineDashboard } from "@/components/marketing/cic-pipeline-dashboard";
+import { SimulationTab } from "@/components/marketing/simulation-tab";
 import { MarketingLeadForm } from "@/components/marketing/lead-form";
-import { MarketingSalesWonTable } from "@/components/marketing/sales-won-table";
-import { MarketingExpectedOrdersTable } from "@/components/marketing/expected-orders-table";
-import { MarketingProspectsTable } from "@/components/marketing/prospects-table";
 import { MarketingProspectsForm } from "@/components/marketing/prospects-form";
 import { MarketingSalesWonForm } from "@/components/marketing/sales-won-form";
-import { LostProjectsTable } from "@/components/marketing/lost-projects-table";
 import { SectorsManagement, Sector } from "@/components/marketing/sectors-management";
 import { UserManagement } from "@/components/marketing/user-management";
 import { MarketingActivitiesTable } from "@/components/marketing/activities-table";
@@ -571,11 +568,7 @@ export default function MarketingDashboard() {
       {
         title: "Pipeline",
         items: [
-          { id: "leads", label: "Leads", icon: Users },
-          { id: "prospects", label: "Prospects", icon: Binoculars },
-          { id: "expected-orders", label: "Expected Orders", icon: Target },
-          { id: "sales-won", label: "Won", icon: TrendingUp },
-          { id: "lost-projects", label: "Lost Projects", icon: XCircle },
+          { id: "pipeline", label: "Pipeline", icon: LayoutDashboard },
         ],
       }
     ] : []),
@@ -601,6 +594,12 @@ export default function MarketingDashboard() {
         ],
       },
     ] : []),
+    {
+      title: "Testing",
+      items: [
+        { id: "simulate", label: "Simulate Scenarios", icon: FlaskConical },
+      ],
+    },
   ];
 
   const handleLogout = () => {
@@ -697,54 +696,17 @@ export default function MarketingDashboard() {
           />
         )}
 
-        {activeSection === "leads" && (
-          <MarketingLeadsTable
-            showMarketerInfo={!!(user.permissions?.includes("marketing.view_all") || user.permissions?.includes("admin.view"))}
-            selectedMarketer={selectedMarketer}
-            onMarketerChange={setSelectedMarketer}
-            currentUser={user}
-            onAddClick={() => setShowLeadModal(true)}
+        {activeSection === "pipeline" && (
+          <CICPipelineDashboard 
+            pipelineMode={pipelineMode}
+            setPipelineMode={setPipelineMode}
+            user={user as MarketingUser}
+            onAddLead={() => setShowLeadModal(true)}
           />
         )}
 
-        {activeSection === "sales-won" && (
-          <MarketingSalesWonTable
-            showMarketerInfo={!!(user.permissions?.includes("marketing.view_all") || user.permissions?.includes("admin.view"))}
-            selectedMarketer={selectedMarketer}
-            onMarketerChange={setSelectedMarketer}
-            currentUser={user}
-            onAddClick={() => setShowSalesWonModal(true)}
-            customerTypeFilter="business"
-          />
-        )}
-
-        {activeSection === "lost-projects" && (
-          <LostProjectsTable
-            showMarketerInfo={!!(user.permissions?.includes("marketing.view_all") || user.permissions?.includes("admin.view"))}
-            selectedMarketer={selectedMarketer}
-            onMarketerChange={setSelectedMarketer}
-          />
-        )}
-
-        {activeSection === "expected-orders" && (
-          <MarketingExpectedOrdersTable
-            showMarketerInfo={!!(user.permissions?.includes("marketing.view_all") || user.permissions?.includes("admin.view"))}
-            selectedMarketer={selectedMarketer}
-            onMarketerChange={setSelectedMarketer}
-            currentUser={user}
-          />
-        )}
-
-        {activeSection === "prospects" && (
-          <MarketingProspectsTable
-            showMarketerInfo={!!(user.permissions?.includes("marketing.view_all") || user.permissions?.includes("admin.view"))}
-            selectedMarketer={selectedMarketer}
-            onMarketerChange={setSelectedMarketer}
-            currentUser={user}
-            customerTypeFilter={prospectSubTab === "students" ? "student" : "business"}
-            activeTab={prospectSubTab}
-            onTabChange={(tab) => setProspectSubTab(tab as "business" | "students")}
-          />
+        {activeSection === "simulate" && (
+          <SimulationTab />
         )}
 
         {activeSection === "documents" && (

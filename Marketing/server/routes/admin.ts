@@ -371,6 +371,7 @@ export function registerAdminRoutes(app: Express) {
   app.get("/api/admin/departments", marketingAuth, checkPermission("admin.departments.view"), async (_req, res) => {
     try {
       const depts = await db.select().from(departments).where(eq(departments.isActive, true)).orderBy(desc(departments.createdAt));
+      console.log("DEPT GET:", depts[0]);
       res.json({ departments: depts });
     } catch (error) {
       console.error("Error fetching departments:", error);
@@ -380,14 +381,34 @@ export function registerAdminRoutes(app: Express) {
 
   app.post("/api/admin/departments", marketingAuth, marketingAdminAuth, checkPermission("admin.departments.create"), async (req, res) => {
     try {
-      const { name, code, description, parentDepartmentId, headUserId } = req.body;
+      const { name, code, description, parentDepartmentId, headUserId, isMarketingDepartment, handlesLeads, handlesB2c, handlesB2b } = req.body;
       if (!name || !code) {
         return res.status(400).json({ error: "Name and code are required" });
       }
-      const newDept = await db
-        .insert(departments)
-        .values({ name, code, description, parentDepartmentId, headUserId } as any)
-        .returning();
+
+      let newDept: any[] = [];
+      await db.transaction(async (tx) => {
+        // ATOMIC: if setting this dept as marketing, unset all others first
+        if (isMarketingDepartment === true) {
+          await tx.update(departments).set({ isMarketingDepartment: false });
+        }
+        
+        const insertData = { 
+          name, 
+          code, 
+          description, 
+          parentDepartmentId, 
+          headUserId,
+          isMarketingDepartment: Boolean(isMarketingDepartment),
+          handlesLeads: Boolean(handlesLeads),
+          handlesB2c: Boolean(handlesB2c),
+          handlesB2b: Boolean(handlesB2b)
+        };
+        newDept = await tx
+          .insert(departments)
+          .values(insertData)
+          .returning();
+      });
 
       res.status(201).json({ department: newDept[0] });
 
@@ -413,12 +434,33 @@ export function registerAdminRoutes(app: Express) {
         return res.status(404).json({ error: "Department not found" });
       }
 
-      const updateData = { ...req.body, updatedAt: sql`now()` };
-      const updated = await db
-        .update(departments)
-        .set(updateData)
-        .where(eq(departments.id, id as string))
-        .returning();
+      const { name, code, description, parentDepartmentId, headUserId, isMarketingDepartment, handlesLeads, handlesB2c, handlesB2b } = req.body;
+      const updateData = {
+        name,
+        code,
+        description,
+        parentDepartmentId,
+        headUserId,
+        isMarketingDepartment: Boolean(isMarketingDepartment),
+        handlesLeads: Boolean(handlesLeads),
+        handlesB2c: Boolean(handlesB2c),
+        handlesB2b: Boolean(handlesB2b),
+        updatedAt: sql`now()`
+      };
+      
+      let updated: any[] = [];
+      await db.transaction(async (tx) => {
+        // ATOMIC: if setting this dept as marketing, unset all others first
+        if (isMarketingDepartment === true) {
+          await tx.update(departments).set({ isMarketingDepartment: false });
+        }
+        
+        updated = await tx
+          .update(departments)
+          .set(updateData)
+          .where(eq(departments.id, id as string))
+          .returning();
+      });
 
       res.json({ department: updated[0] });
 

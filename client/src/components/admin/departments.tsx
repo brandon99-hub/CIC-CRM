@@ -19,8 +19,8 @@ interface DepartmentsProps {
     // Modal
     deptModalOpen: boolean;
     editingDept: Department | null;
-    deptForm: { name: string; code: string; description: string; parentDepartmentId: string };
-    onDeptFormChange: (form: { name: string; code: string; description: string; parentDepartmentId: string }) => void;
+    deptForm: { name: string; code: string; description: string; parentDepartmentId: string; isMarketingDepartment: boolean; handlesLeads: boolean; handlesB2c: boolean; handlesB2b: boolean; };
+    onDeptFormChange: (form: { name: string; code: string; description: string; parentDepartmentId: string; isMarketingDepartment: boolean; handlesLeads: boolean; handlesB2c: boolean; handlesB2b: boolean; }) => void;
     onOpenDeptModal: (dept?: Department) => void;
     onSaveDept: () => void;
     onDeleteDept: (id: string) => void;
@@ -258,6 +258,69 @@ export function Departments({
                                         placeholder="Describe the unit's core function and objectives..."
                                         className="border-gray-200 focus:ring-2 focus:ring-[#004E98]/20 transition-all min-h-[120px] resize-none"
                                     />
+                                </div>
+                                
+                                {/* Pipeline Roles Configuration */}
+                                <div className="p-5 border rounded-xl bg-gray-50/50 space-y-4">
+                                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4 pb-2 border-b">
+                                        <Briefcase className="h-4 w-4 text-[#004E98]" /> Pipeline Roles
+                                    </h4>
+                                    
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="font-semibold text-gray-800">Marketing Department</Label>
+                                            <p className="text-xs text-gray-500 mt-0.5 max-w-[280px]">
+                                                Only one department can hold this role. Designates ownership of leads on the marketing dashboard.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="isMarketing"
+                                                checked={deptForm.isMarketingDepartment}
+                                                onChange={(e) => {
+                                                    // In a real implementation we'd warn about conflict, for now just toggle
+                                                    onDeptFormChange({ ...deptForm, isMarketingDepartment: e.target.checked });
+                                                }}
+                                                className="h-5 w-5 rounded border-gray-300 text-[#004E98] focus:ring-[#004E98]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="font-semibold text-gray-800">Handles Leads</Label>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={deptForm.handlesLeads}
+                                                onChange={(e) => onDeptFormChange({ ...deptForm, handlesLeads: e.target.checked })}
+                                                className="h-5 w-5 rounded border-gray-300 text-[#004E98] focus:ring-[#004E98]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-2">
+                                        <label className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={deptForm.handlesB2c}
+                                                onChange={(e) => onDeptFormChange({ ...deptForm, handlesB2c: e.target.checked })}
+                                                className="h-4 w-4 rounded border-gray-300 text-[#004E98] focus:ring-[#004E98]"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">B2C Pipeline</span>
+                                        </label>
+                                        <label className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={deptForm.handlesB2b}
+                                                onChange={(e) => onDeptFormChange({ ...deptForm, handlesB2b: e.target.checked })}
+                                                className="h-4 w-4 rounded border-gray-300 text-[#004E98] focus:ring-[#004E98]"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">B2B Pipeline</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>

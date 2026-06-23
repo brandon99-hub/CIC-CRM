@@ -142,15 +142,15 @@ export function CaseList({
             doc.rect(0, 0, 210, 8, 'F');
             
             // Add Logo if available (assumes public/logo.webp)
-            doc.addImage("/logo.webp", "WEBP", 14, 15, 25, 25);
+            doc.addImage("/assets/cic-logo.svg", "SVG", 14, 15, 25, 25);
         } catch (e) {
             console.warn("Logo failed to load for PDF:", e);
         }
 
         doc.setFontSize(24);
-        doc.setTextColor(0, 78, 152); // KASNEB Blue
+        doc.setTextColor(0, 78, 152); // CIC Blue
         doc.setFont("helvetica", "bold");
-        doc.text("KASNEB CRM", 45, 25);
+        doc.text("CIC CRM — Pipeline Report", 45, 25);
 
         doc.setFontSize(10);
         doc.setTextColor(120);
@@ -163,7 +163,7 @@ export function CaseList({
         doc.setFontSize(14);
         doc.setTextColor(60);
         doc.setFont("helvetica", "bold");
-        doc.text("OFFICIAL CASE MANAGEMENT REPORT", 14, 55);
+        doc.text("CIC CRM — Pipeline & Cases Report", 14, 55);
 
         doc.setFontSize(9);
         doc.setTextColor(130);
@@ -208,10 +208,10 @@ export function CaseList({
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(150);
-            doc.text(`Page ${i} of ${pageCount} | KASNEB CRM Confidential`, 105, 285, { align: "center" });
+            doc.text(`CIC Insurance Group | CIC Plaza, Upperhill Nairobi | ke.cicinsurancegroup.com | Page ${i} of ${pageCount} | CIC Insurance Group — Confidential`, 105, 285, { align: "center" });
         }
 
-        doc.save(`KASNEB_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        doc.save(`CIC_CRM_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
     const confirmAcknowledge = async (message: string) => {

@@ -115,7 +115,7 @@ export default function SatisfactionPage() {
       <div className="bg-white rounded-3xl shadow-2xl shadow-blue-500/10 max-w-md w-full overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#004E98] to-[#003366] p-6 text-center">
-          <h1 className="text-white text-lg font-black tracking-tight">KASNEB CRM</h1>
+          <h1 className="text-white text-lg font-black tracking-tight">CIC CRM</h1>
           <p className="text-white/60 text-[10px] uppercase tracking-[3px] mt-1">Service Feedback</p>
         </div>
 

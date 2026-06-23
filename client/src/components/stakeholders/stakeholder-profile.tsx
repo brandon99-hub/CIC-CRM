@@ -497,9 +497,11 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="email">Email</SelectItem>
-                                                        <SelectItem value="phone">Phone/SMS</SelectItem>
-                                                        <SelectItem value="portal">Student Portal</SelectItem>
+                                                        <SelectItem value="phone">Phone / Call</SelectItem>
+                                                        <SelectItem value="sms">SMS</SelectItem>
                                                         <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                                        <SelectItem value="portal">Client Portal</SelectItem>
+                                                        <SelectItem value="walk_in">Branch / Walk-in</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             ) : (

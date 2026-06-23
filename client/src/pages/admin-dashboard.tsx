@@ -214,7 +214,7 @@ export default function AdminDashboard() {
 
   const [deptModalOpen, setDeptModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
-  const [deptForm, setDeptForm] = useState({ name: "", code: "", description: "", parentDepartmentId: "" });
+  const [deptForm, setDeptForm] = useState({ name: "", code: "", description: "", parentDepartmentId: "", isMarketingDepartment: false, handlesLeads: false, handlesB2c: false, handlesB2b: false });
 
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<ServiceCategory | null>(null);
@@ -567,14 +567,18 @@ export default function AdminDashboard() {
   const openDeptModal = (dept?: Department) => {
     if (dept) {
       setEditingDept(dept);
-      setDeptForm({ name: dept.name, code: dept.code, description: dept.description || "", parentDepartmentId: dept.parentDepartmentId || "none" });
+      setDeptForm({ name: dept.name, code: dept.code, description: dept.description || "", parentDepartmentId: dept.parentDepartmentId || "none", isMarketingDepartment: dept.isMarketingDepartment || false, handlesLeads: dept.handlesLeads || false, handlesB2c: dept.handlesB2c || false, handlesB2b: dept.handlesB2b || false });
     } else {
       setEditingDept(null);
       setDeptForm({
         name: "",
         code: `DEPT-${String(departments.length + 1).padStart(3, '0')}`,
         description: "",
-        parentDepartmentId: selectedDeptForSubs ? selectedDeptForSubs.id : "none"
+        parentDepartmentId: selectedDeptForSubs ? selectedDeptForSubs.id : "none",
+        isMarketingDepartment: false,
+        handlesLeads: false,
+        handlesB2c: false,
+        handlesB2b: false
       });
     }
     setDeptModalOpen(true);

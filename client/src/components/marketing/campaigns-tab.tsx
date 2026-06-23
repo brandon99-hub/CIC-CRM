@@ -103,11 +103,11 @@ export function CampaignsTab({ campaigns, pagination, onPageChange, onOpenModal,
             doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
             doc.setTextColor(255, 255, 255);
-            doc.text("KASNEB CUSTOMER RELATIONSHIP MANAGEMENT", 105, 28, { align: "center" });
+            doc.text("CIC INSURANCE GROUP — CUSTOMER RELATIONSHIP MANAGEMENT", 105, 28, { align: "center" });
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
-            doc.text("OFFICIAL REGISTRATION PORTAL", 105, 42, { align: "center" });
+            doc.text("OFFICIAL CAMPAIGN REGISTRATION", 105, 42, { align: "center" });
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(11);
@@ -141,7 +141,7 @@ export function CampaignsTab({ campaigns, pagination, onPageChange, onOpenModal,
             doc.setTextColor(71, 85, 105);
             doc.text("1. Open the Camera app or a dedicated QR code scanner on your smartphone.", 105, 252, { align: "center" });
             doc.text("2. Point your camera at the QR code above until a notification link appears.", 105, 259, { align: "center" });
-            doc.text("3. Tap the link to open the KASNEB Registration portal and submit your details.", 105, 266, { align: "center" });
+            doc.text("3. Tap the link to open the CIC Insurance registration portal and submit your details.", 105, 266, { align: "center" });
 
             // 5. Divider Line & Branded Footer
             doc.setDrawColor(241, 245, 249);
@@ -150,10 +150,10 @@ export function CampaignsTab({ campaigns, pagination, onPageChange, onOpenModal,
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
             doc.setTextColor(148, 163, 184);
-            doc.text("POWERED BY KASNEB CRM MARKETING SYSTEM", 105, 284, { align: "center" });
+            doc.text("CIC Insurance Group | ke.cicinsurancegroup.com | IRA Licensed", 105, 284, { align: "center" });
 
             // Direct local PDF download trigger
-            doc.save(`KASNEB_Event_Registration_${eventName.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
+            doc.save(`CIC_Campaign_${eventName.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
         } catch (error) {
             console.error("PDF generation failed:", error);
         }

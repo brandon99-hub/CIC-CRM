@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
-export const KASNEB_COLORS = {
+export const CIC_COLORS = {
     blue: "#004E98", green: "#01a64e", gold: "#D0AC01", orange: "#e55f00",
 };
 export const CHART_COLORS = ["#004E98", "#01a64e", "#D0AC01", "#e55f00", "#6366f1", "#ec4899"];

@@ -14,6 +14,7 @@ import {
 } from "../../shared/adminSchema";
 import { conversations } from "../../shared/commsSchema";
 import { marketingUsers, marketingProspects, marketingLeads } from "../../shared/schema";
+import { cicLeads } from "../../shared/cicSchema";
 import { eq, ne, desc, sql, ilike, or, and, count, between, asc, inArray, gte, lte, isNull } from "drizzle-orm";
 import { sanitizeSearchInput, sanitizeInteger } from "../utils/sanitize";
 import { AssignmentService } from "../services/assignment-service";
@@ -96,7 +97,8 @@ async function triageLeadFromCase(caseId: string) {
       description: cases.description,
       serviceCategoryId: cases.serviceCategoryId,
       stakeholderId: cases.stakeholderId,
-      assignedTo: cases.assignedTo
+      assignedTo: cases.assignedTo,
+      channel: cases.channel
     })
       .from(cases)
       .where(eq(cases.id, caseId))
@@ -122,42 +124,59 @@ async function triageLeadFromCase(caseId: string) {
 
       if (isMarketingDept || isLeadCategory) {
         // Check if we already created a lead for this case (idempotency)
-        const existingLead = await db.select().from(marketingLeads)
-          .where(ilike(marketingLeads.remarks, `%${caseData.caseNumber}%`))
+        // using the new cicLeads table
+        const existingLead = await db.select().from(cicLeads)
+          .where(ilike(cicLeads.leadRef, `%${caseData.caseNumber}%`))
           .limit(1);
 
         if (existingLead.length === 0) {
           // Fetch stakeholder details for better lead info
           const [stakeholder] = await db.select().from(stakeholders).where(eq(stakeholders.id, caseData.stakeholderId || "")).limit(1);
 
-          // Dynamic Mapping based on Stakeholder Type
-          // Students: Direct inquiries. Client = Brandon, Contact = Brandon.
-          // Institutions/Employers: Client = Organization, Contact = Person.
-          let clientName = "";
-          let contactName = "TBD";
-
-          if (stakeholder) {
-            contactName = `${stakeholder.firstName} ${stakeholder.lastName}`;
-            if (stakeholder.type === 'student') {
-              clientName = contactName;
-            } else {
-              clientName = stakeholder.organization || contactName;
-            }
-          } else {
-            clientName = caseData.title;
+          // Determine B2C vs B2B based on stakeholder type
+          let pipelineType = "b2c";
+          if (stakeholder && (stakeholder.type === 'corporate_client' || stakeholder.type === 'sacco_cooperative' || stakeholder.type === 'bancassurance_partner' || stakeholder.type === 'broker')) {
+            pipelineType = "b2b";
           }
 
-          await db.insert(marketingLeads).values({
-            date: new Date().toISOString(),
-            client: clientName,
-            contactPerson: contactName,
-            contactNumber: stakeholder?.phone || "TBD",
-            contactEmail: stakeholder?.email || "TBD",
-            marketerId: caseData.assignedTo,
-            remarks: `Source: Case ${caseData.caseNumber}\nDescription: ${caseData.description || caseData.title}`
+          let contactName = "";
+          let orgName = "";
+          let phone = "TBD";
+          let email = "TBD";
+          let productLine = "motor";
+
+          if (stakeholder) {
+            contactName = `${stakeholder.firstName || ''} ${stakeholder.lastName || ''}`.trim();
+            orgName = stakeholder.organization || "";
+            phone = stakeholder.phone || "TBD";
+            email = stakeholder.email || "TBD";
+            productLine = stakeholder.productLine || "motor";
+          } else {
+            contactName = caseData.title || "TBD";
+          }
+
+          await db.insert(cicLeads).values({
+            leadRef: `LEAD-${caseData.caseNumber}`,
+            pipelineType: pipelineType,
+            productLine: productLine,
+            sourceChannel: caseData.channel || "referral",
+            firstName: stakeholder?.firstName || contactName.split(' ')[0] || null,
+            lastName: stakeholder?.lastName || contactName.split(' ').slice(1).join(' ') || null,
+            organisationName: orgName || null,
+            phone: phone,
+            email: email,
+            county: stakeholder?.county || null,
+            assignedToUserId: caseData.assignedTo,
+            stage: "lead",
+            referredByStakeholderId: stakeholder?.id || null
           } as any);
 
-          console.log(`[Lead Triage] Automatically created lead for case ${caseData.caseNumber} (Dept: ${dept.name})`);
+          // Update the original case to indicate it has been escalated to a Lead
+          await db.update(cases)
+            .set({ status: 'escalated' })
+            .where(eq(cases.id, caseId));
+
+          console.log(`[Lead Triage] Automatically created CIC pipeline lead for case ${caseData.caseNumber} and escalated case.`);
         }
       }
     }

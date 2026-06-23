@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, AreaChart, Area, Legend, YAxis as RechartYAxis } from "recharts";
-import { ProgressBar, KASNEB_COLORS, CHART_COLORS, formatLabel } from "./executive-shared";
+import { ProgressBar, CIC_COLORS, CHART_COLORS, formatLabel } from "./executive-shared";
 
 const engagementDistribution = [
     { range: "0-20", count: 45, label: "Low" }, { range: "21-40", count: 78, label: "Below Avg" },
@@ -57,7 +57,7 @@ export function EngagementTab() {
                                 <div key={ch.channel} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                                     <div><div className="font-medium text-sm">{ch.channel}</div><div className="text-xs text-muted-foreground">{ch.responses} responses · Avg {ch.avgTime}h</div></div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-24"><ProgressBar value={(ch.satisfaction / 5) * 100} color={KASNEB_COLORS.blue} /></div>
+                                        <div className="w-24"><ProgressBar value={(ch.satisfaction / 5) * 100} color={CIC_COLORS.blue} /></div>
                                         <span className="text-sm font-semibold w-8">★ {ch.satisfaction}</span>
                                     </div>
                                 </div>
@@ -86,7 +86,7 @@ export function EngagementTab() {
                                         <td className="py-3 px-2"><Badge className={c.status === "active" ? "bg-green-100 text-green-800 border-0" : "bg-gray-100 text-gray-700 border-0"}>{formatLabel(c.status)}</Badge></td>
                                         <td className="py-3 px-2 text-right">{c.reach.toLocaleString()}</td>
                                         <td className="py-3 px-2 text-right">{c.engagement.toLocaleString()}</td>
-                                        <td className="py-3 px-2 text-right font-semibold" style={{ color: c.conversion >= 15 ? KASNEB_COLORS.green : KASNEB_COLORS.orange }}>{c.conversion}%</td>
+                                        <td className="py-3 px-2 text-right font-semibold" style={{ color: c.conversion >= 15 ? CIC_COLORS.green : CIC_COLORS.orange }}>{c.conversion}%</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -105,8 +105,8 @@ export function EngagementTab() {
                             <YAxis domain={[3.5, 5]} tick={{ fontSize: 12 }} />
                             <YAxis yAxisId={1} orientation="right" tick={{ fontSize: 12 }} />
                             <Tooltip /><Legend />
-                            <Area type="monotone" dataKey="score" stroke={KASNEB_COLORS.gold} fill={`${KASNEB_COLORS.gold}20`} strokeWidth={2} name="Satisfaction Score" />
-                            <Bar dataKey="responses" fill={`${KASNEB_COLORS.blue}40`} name="Responses" yAxisId={1} />
+                            <Area type="monotone" dataKey="score" stroke={CIC_COLORS.gold} fill={`${CIC_COLORS.gold}20`} strokeWidth={2} name="Satisfaction Score" />
+                            <Bar dataKey="responses" fill={`${CIC_COLORS.blue}40`} name="Responses" yAxisId={1} />
                         </AreaChart>
                     </ResponsiveContainer>
                 </CardContent>

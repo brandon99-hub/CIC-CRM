@@ -98,7 +98,7 @@ export default function MarketingLogin() {
             <div className="text-center">
               <img
                 src="/logo.webp"
-                alt="KASNEB Logo"
+                alt="CIC Insurance Group Logo"
                 className="h-24 w-auto mx-auto mb-6"
               />
               <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>

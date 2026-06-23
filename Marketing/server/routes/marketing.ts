@@ -15,7 +15,8 @@ import {
   marketingActivities,
 } from "../../shared/schema";
 import { intakeSignals } from "../../shared/crmSchema";
-import { departments } from "../../shared/adminSchema";
+import { departments, serviceCategories } from "../../shared/adminSchema";
+import { cicLeads } from "../../shared/cicSchema";
 import {
   marketingUserLoginSchema,
   marketingUserRegisterSchema,
@@ -137,208 +138,144 @@ export function registerMarketingRoutes(app: Express) {
       // If admin and no specific marketerId/bdId provided, we show global organization stats
       const targetmarketerId = marketerId || bdId || (isAdmin && !req.query.marketerId && !req.query.bdId ? undefined : req.marketingUser?.id);
 
-      // Helper to build where clauses with optional marketer filtering
-      const buildWhere = (table: any, dateField: any, extraCond?: any) => {
-        const conditions = [
-          sql`EXTRACT(YEAR FROM CAST(${dateField} AS DATE)) = ${currentYear}`
-        ];
-        if (targetmarketerId) {
-          conditions.push(eq(table.marketerId, targetmarketerId));
-        }
-        if (extraCond) {
-          conditions.push(extraCond);
-        }
-        return and(...conditions);
-      };
+      // Fetch Marketing Dept
+      const marketingDept = await db.select().from(departments).where(eq(departments.isMarketingDepartment, true)).limit(1);
+      const marketingDeptId = marketingDept.length > 0 ? marketingDept[0].id : null;
 
-      if (isB2C) {
-        const [leadsCountData, registeredData, bookingsData, convertedData, targetData] = await Promise.all([
-          db
-            .select({ count: count() })
-            .from(marketingLeads)
-            .where(buildWhere(marketingLeads, marketingLeads.date, and(eq(marketingLeads.customerType, 'student'), eq(marketingLeads.stage, 'lead')))),
-          db
-            .select({ count: count(), total: sql<number>`COALESCE(SUM(CAST(${marketingProspects.revenue} AS DECIMAL)), 0)` })
-            .from(marketingProspects)
-            .where(buildWhere(marketingProspects, marketingProspects.date, and(eq(marketingProspects.customerType, 'student'), eq(marketingProspects.stage, 'prospect_registration')))),
-          db
-            .select({ count: count(), total: sql<number>`COALESCE(SUM(CAST(${marketingProspects.revenue} AS DECIMAL)), 0)` })
-            .from(marketingProspects)
-            .where(buildWhere(marketingProspects, marketingProspects.date, and(eq(marketingProspects.customerType, 'student'), eq(marketingProspects.stage, 'prospect_booking')))),
-          db
-            .select({ count: count(), total: sql<number>`COALESCE(SUM(CAST(${marketingSalesWon.contractAmount} AS DECIMAL)), 0)` })
-            .from(marketingSalesWon)
-            .where(buildWhere(marketingSalesWon, marketingSalesWon.createdAt, eq(marketingSalesWon.customerType, 'student'))),
-          targetmarketerId
-            ? db
-                .select({
-                  registrationTarget: marketingAnnualSummary.registrationTarget,
-                  bookingTarget: marketingAnnualSummary.bookingTarget,
-                  commissionPercentage: marketingAnnualSummary.commissionPercentage
-                })
-                .from(marketingAnnualSummary)
-                .where(and(eq(marketingAnnualSummary.marketerId, targetmarketerId), eq(marketingAnnualSummary.year, currentYear)))
-                .limit(1)
-            : db
-                .select({
-                  registrationTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.registrationTarget} AS DECIMAL)), 0)`,
-                  bookingTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.bookingTarget} AS DECIMAL)), 0)`,
-                  commissionPercentage: sql<number>`COALESCE(MAX(${marketingAnnualSummary.commissionPercentage}), 5)`
-                })
-                .from(marketingAnnualSummary)
-                .where(eq(marketingAnnualSummary.year, currentYear)),
-        ]);
-
-        const leadsCount = Number(leadsCountData[0].count);
-        const regCount = Number(registeredData[0].count);
-        const regRev = Number(registeredData[0].total);
-        const bookCount = Number(bookingsData[0].count);
-        const bookRev = Number(bookingsData[0].total);
-        const convertedCount = Number(convertedData[0].count);
-        const convertedRevenue = Number(convertedData[0].total);
-
-        const registrationTarget = targetData[0] ? Number(targetData[0].registrationTarget || 0) : 0;
-        const bookingTarget = targetData[0] ? Number(targetData[0].bookingTarget || 0) : 0;
-        const commissionPercentage = targetData[0] ? Number(targetData[0].commissionPercentage || 5) : 5;
-        const totalB2CTarget = registrationTarget + bookingTarget;
-        
-        const targetAchievement = totalB2CTarget > 0 ? ((regRev + bookRev) / totalB2CTarget * 100) : 0;
-
-        res.json({
+      if (!marketingDeptId) {
+        return res.json({
           year: currentYear,
-          prospectsCount: regCount + bookCount,
-          leadsCount,
-          expectedOrdersCount: bookCount,
-          salesWonCount: convertedCount,
-          totalRevenue: convertedRevenue,
-          expectedOrdersRevenue: bookRev,
-          registeredCount: regCount,
-          registeredRevenue: regRev,
-          target: totalB2CTarget,
-          revisedTarget: 0,
-          expectedTarget: 0,
-          bookingTarget: bookingTarget,
-          commissionPercentage: commissionPercentage,
-          targetAchievement: Math.round(targetAchievement * 100) / 100,
-          isB2C: true,
-          b2cStats: {
-            leads: { count: leadsCount },
-            registered: { count: regCount, value: regRev },
-            bookings: { count: bookCount, value: bookRev },
-            converted: { count: convertedCount, value: convertedRevenue }
-          }
+          prospectsCount: 0, leadsCount: 0, expectedOrdersCount: 0, salesWonCount: 0,
+          totalRevenue: 0, expectedOrdersRevenue: 0, target: 0, revisedTarget: 0,
+          expectedTarget: 0, bookingTarget: 0, commissionPercentage: 5, targetAchievement: 0,
+          isB2C,
+          ...(isB2C ? {
+            registeredCount: 0, registeredRevenue: 0,
+            b2cStats: {
+              leads: { count: 0 }, registered: { count: 0, value: 0 },
+              bookings: { count: 0, value: 0 }, converted: { count: 0, value: 0 }
+            }
+          } : {})
         });
-      } else {
-        const customerCond = inArray(marketingProspects.customerType, ['institution', 'organization', 'employer']);
-        const leadsCustomerCond = inArray(marketingLeads.customerType, ['institution', 'organization', 'employer']);
-        const expectedCustomerCond = inArray(marketingExpectedOrders.customerType, ['institution', 'organization', 'employer']);
-        const salesCustomerCond = inArray(marketingSalesWon.customerType, ['institution', 'organization', 'employer']);
+      }
 
-        // Get stats for the specified year using the new prospects table
-        const [prospectsCount, leadsCount, expectedOrdersCount, salesWonCount, totalRevenue, expectedOrdersRevenue, targetData] = await Promise.all([
-          // Prospects count - include all active pipeline stages
-          db
-            .select({ count: count() })
-            .from(marketingProspects)
-            .where(buildWhere(marketingProspects, marketingProspects.date, and(inArray(marketingProspects.stage, ['prospect', 'opportunity', 'engagement']), customerCond))),
+      // Filter by pipeline type
+      const pipelineFilter = isB2C ? eq(cicLeads.pipelineType, "b2c") : eq(cicLeads.pipelineType, "b2b");
+      
+      const conditions = [
+        eq(cicLeads.departmentId, marketingDeptId),
+        pipelineFilter,
+        sql`EXTRACT(YEAR FROM CAST(${cicLeads.createdAt} AS DATE)) = ${currentYear}`
+      ];
+      
+      if (targetmarketerId) {
+        conditions.push(eq(cicLeads.assignedToUserId, targetmarketerId));
+      }
 
-          // Leads count - from actual leads table
-          db
-            .select({ count: count() })
-            .from(marketingLeads)
-            .where(buildWhere(marketingLeads, marketingLeads.date, leadsCustomerCond)),
+      // Aggregate by stage
+      const stageStats = await db
+        .select({
+          stage: cicLeads.stage,
+          count: count(),
+          total: sql<number>`COALESCE(SUM(CAST(REGEXP_REPLACE(COALESCE(${cicLeads.estimatedAnnualPremium}, '0'), '[^0-9.]', '', 'g') AS DECIMAL)), 0)`
+        })
+        .from(cicLeads)
+        .where(and(...conditions))
+        .groupBy(cicLeads.stage);
 
-          // Expected Orders count - from actual expected orders table
-          db
-            .select({ count: count() })
-            .from(marketingExpectedOrders)
-            .where(buildWhere(marketingExpectedOrders, marketingExpectedOrders.createdAt, expectedCustomerCond)),
+      const statsMap = stageStats.reduce((acc, curr) => {
+        acc[curr.stage] = { count: Number(curr.count), total: Number(curr.total) };
+        return acc;
+      }, {} as Record<string, { count: number, total: number }>);
 
-          // Sales Won count - from actual sales won table
-          db
-            .select({ count: count() })
-            .from(marketingSalesWon)
-            .where(buildWhere(marketingSalesWon, marketingSalesWon.createdAt, salesCustomerCond)),
+      const getStat = (stage: string) => statsMap[stage] || { count: 0, total: 0 };
 
-          // Total revenue - from sales won only (actual closed deals)
-          db
-            .select({ total: sql<number>`COALESCE(SUM(CAST(${marketingSalesWon.contractAmount} AS DECIMAL)), 0)` })
-            .from(marketingSalesWon)
-            .where(
-              and(
-                sql`EXTRACT(YEAR FROM CAST(${marketingSalesWon.createdAt} AS DATE)) = ${currentYear}`,
-                salesCustomerCond,
-                targetmarketerId ? eq(marketingSalesWon.marketerId, targetmarketerId) : undefined
-              )
-            ),
-
-          // Total expected orders revenue
-          db
-            .select({ total: sql<number>`COALESCE(SUM(CAST(${marketingExpectedOrders.revenue} AS DECIMAL)), 0)` })
-            .from(marketingExpectedOrders)
-            .where(
-              and(
-                sql`EXTRACT(YEAR FROM CAST(${marketingExpectedOrders.createdAt} AS DATE)) = ${currentYear}`,
-                expectedCustomerCond,
-                targetmarketerId ? eq(marketingExpectedOrders.marketerId, targetmarketerId) : undefined
-              )
-            ),
-
-          // Target data from annual summary - sum for global or specific for marketer
-          targetmarketerId
-            ? db
-              .select({
+      // Target data from annual summary
+      const targetData = targetmarketerId
+            ? await db.select({
                 target: marketingAnnualSummary.target,
                 revisedTarget: marketingAnnualSummary.revisedTarget,
                 expectedTarget: marketingAnnualSummary.expectedTarget,
                 bookingTarget: marketingAnnualSummary.bookingTarget,
+                registrationTarget: marketingAnnualSummary.registrationTarget,
                 commissionPercentage: marketingAnnualSummary.commissionPercentage
-              })
-              .from(marketingAnnualSummary)
-              .where(
-                and(
-                  eq(marketingAnnualSummary.marketerId, targetmarketerId),
-                  eq(marketingAnnualSummary.year, currentYear)
-                )
-              )
-              .limit(1)
-            : db
-              .select({
+              }).from(marketingAnnualSummary).where(and(eq(marketingAnnualSummary.marketerId, targetmarketerId), eq(marketingAnnualSummary.year, currentYear))).limit(1)
+            : await db.select({
                 target: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.target} AS DECIMAL)), 0)`,
                 revisedTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.revisedTarget} AS DECIMAL)), 0)`,
                 expectedTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.expectedTarget} AS DECIMAL)), 0)`,
                 bookingTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.bookingTarget} AS DECIMAL)), 0)`,
+                registrationTarget: sql<number>`COALESCE(SUM(CAST(${marketingAnnualSummary.registrationTarget} AS DECIMAL)), 0)`,
                 commissionPercentage: sql<number>`COALESCE(MAX(${marketingAnnualSummary.commissionPercentage}), 5)`
-              })
-              .from(marketingAnnualSummary)
-              .where(eq(marketingAnnualSummary.year, currentYear)),
-        ]);
+              }).from(marketingAnnualSummary).where(eq(marketingAnnualSummary.year, currentYear));
 
-        const target = targetData[0] ? Number(targetData[0].target) : 0;
-        const revisedTarget = targetData[0] ? Number((targetData[0] as any).revisedTarget || 0) : 0;
-        const expectedTarget = targetData[0] ? Number(targetData[0].expectedTarget) : 0;
-        const bookingTarget = targetData[0] ? Number((targetData[0] as any).bookingTarget || 0) : 0;
-        const commissionPercentage = targetData[0] ? Number((targetData[0] as any).commissionPercentage || 5) : 5;
-        const actualRevenue = Number(totalRevenue[0].total);
+      const target = targetData[0] ? Number(targetData[0].target) : 0;
+      const revisedTarget = targetData[0] ? Number((targetData[0] as any).revisedTarget || 0) : 0;
+      const expectedTarget = targetData[0] ? Number(targetData[0].expectedTarget) : 0;
+      const bookingTarget = targetData[0] ? Number((targetData[0] as any).bookingTarget || 0) : 0;
+      const commissionPercentage = targetData[0] ? Number((targetData[0] as any).commissionPercentage || 5) : 5;
 
-        // Calculate target achievement percentage based on sales won vs expected target
-        // Use expectedTarget (which is the revised target) if available, otherwise use initial target
+      if (isB2C) {
+        const lead = getStat('lead');
+        const prospect = getStat('prospect');
+        const quote = getStat('quote_underwriting');
+        const policy = getStat('policy_issued');
+        
+        const registeredCount = prospect.count + quote.count;
+        const registeredRevenue = prospect.total + quote.total;
+        const totalB2CTarget = bookingTarget + (targetData[0] ? Number((targetData[0] as any).registrationTarget || 0) : 0);
+        const targetAchievement = totalB2CTarget > 0 ? ((registeredRevenue + policy.total) / totalB2CTarget * 100) : 0;
+
+        res.json({
+          year: currentYear,
+          prospectsCount: registeredCount + policy.count,
+          leadsCount: lead.count,
+          expectedOrdersCount: policy.count,
+          salesWonCount: policy.count,
+          totalRevenue: policy.total,
+          expectedOrdersRevenue: policy.total,
+          registeredCount,
+          registeredRevenue,
+          target: totalB2CTarget,
+          revisedTarget: 0,
+          expectedTarget: 0,
+          bookingTarget,
+          commissionPercentage,
+          targetAchievement: Math.round(targetAchievement * 100) / 100,
+          isB2C: true,
+          b2cStats: {
+            leads: { count: lead.count },
+            registered: { count: registeredCount, value: registeredRevenue },
+            bookings: { count: policy.count, value: policy.total },
+            converted: { count: policy.count, value: policy.total }
+          }
+        });
+      } else {
+        const lead = getStat('lead');
+        const prospect = getStat('prospect');
+        const proposal = getStat('proposal_underwriting');
+        const active = getStat('active');
+        const policy = getStat('policy_issued');
+
+        const prospectsCount = prospect.count + proposal.count;
+        const actualRevenue = policy.total + active.total;
+
         const targetForCalculation = expectedTarget > 0 ? expectedTarget : (revisedTarget > 0 ? revisedTarget : target);
         const targetAchievement = targetForCalculation > 0 ? ((actualRevenue / targetForCalculation) * 100) : 0;
 
         res.json({
           year: currentYear,
-          prospectsCount: Number(prospectsCount[0].count),
-          leadsCount: Number(leadsCount[0].count),
-          expectedOrdersCount: Number(expectedOrdersCount[0].count),
-          salesWonCount: Number(salesWonCount[0].count),
+          prospectsCount,
+          leadsCount: lead.count,
+          expectedOrdersCount: active.count,
+          salesWonCount: policy.count + active.count,
           totalRevenue: actualRevenue,
-          expectedOrdersRevenue: Number(expectedOrdersRevenue[0].total),
-          target: target,
-          revisedTarget: revisedTarget,
-          expectedTarget: expectedTarget,
-          bookingTarget: bookingTarget,
-          commissionPercentage: commissionPercentage,
+          expectedOrdersRevenue: active.total,
+          target,
+          revisedTarget,
+          expectedTarget,
+          bookingTarget,
+          commissionPercentage,
           targetAchievement: Math.round(targetAchievement * 100) / 100,
           isB2C: false
         });
@@ -349,119 +286,99 @@ export function registerMarketingRoutes(app: Express) {
     }
   });
 
+  // Inline stage update for CIC Pipeline
+  app.patch("/api/marketing/pipeline/:id/stage", marketingAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { stage } = req.body;
+      
+      const updated = await db.update(cicLeads)
+        .set({ stage, updatedAt: new Date().toISOString() })
+        .where(eq(cicLeads.id, id as string))
+        .returning();
+
+      if (updated.length === 0) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+
+      res.json({ success: true, lead: updated[0] });
+    } catch (error) {
+      console.error("Stage update error:", error);
+      res.status(500).json({ error: "Failed to update stage" });
+    }
+  });
+
   // Kanban Data Route
   app.get("/api/marketing/kanban", marketingAuth, marketingUserAuth, async (req, res) => {
     try {
-      const { year, pipeline } = marketingQuerySchema.parse(req.query);
-      const currentYear = year || new Date().getFullYear();
-      const isB2C = pipeline === 'B2C';
+      const { pipeline } = marketingQuerySchema.parse(req.query);
+      const isB2C = pipeline === 'B2C' || pipeline === 'b2c';
+
+      // Find the designated marketing department
+      const marketingDept = await db.select().from(departments).where(eq(departments.isMarketingDepartment, true)).limit(1);
+      const marketingDeptId = marketingDept.length > 0 ? marketingDept[0].id : null;
+
+      if (!marketingDeptId) {
+        // Graceful empty state when marketing dept is not configured
+        return res.json({
+          lead: [],
+          prospect_registration: [],
+          prospect_booking: [],
+          prospect_opportunity: [],
+          prospect_engagement: [],
+          expected_order: [],
+          sales_won: [],
+          converted: [],
+          _meta: { configured: false, message: "Marketing department not configured. No leads will be displayed." }
+        });
+      }
 
       const canViewAll = req.marketingUser?.role === 'admin' || req.marketingUser?.permissions?.includes('marketing.view_all');
       const filteredMarketerId = canViewAll ? undefined : req.marketingUser?.id;
 
-      // Helper to build where clauses with optional extra condition
-      const buildWhere = (table: any, dateField: any, extraCond?: any) => {
-        const conditions = [
-          sql`EXTRACT(YEAR FROM CAST(${dateField} AS DATE)) = ${currentYear}`
-        ];
-        if (filteredMarketerId) {
-          conditions.push(eq(table.marketerId, filteredMarketerId));
-        }
-        if (extraCond) {
-          conditions.push(extraCond);
-        }
-        return and(...conditions);
-      };
+      // Filter by pipeline type
+      const pipelineFilter = isB2C ? eq(cicLeads.pipelineType, "b2c") : eq(cicLeads.pipelineType, "b2b");
+      
+      const conditions = [
+        eq(cicLeads.departmentId, marketingDeptId),
+        pipelineFilter
+      ];
+      
+      if (filteredMarketerId) {
+        conditions.push(eq(cicLeads.assignedToUserId, filteredMarketerId));
+      }
 
-      const customerCond = isB2C 
-        ? eq(marketingProspects.customerType, 'student')
-        : inArray(marketingProspects.customerType, ['institution', 'organization', 'employer']);
-        
-      const leadsCustomerCond = isB2C
-        ? eq(marketingLeads.customerType, 'student')
-        : inArray(marketingLeads.customerType, ['institution', 'organization', 'employer']);
-        
-      const expectedCustomerCond = isB2C
-        ? eq(marketingExpectedOrders.customerType, 'student')
-        : inArray(marketingExpectedOrders.customerType, ['institution', 'organization', 'employer']);
-        
-      const salesCustomerCond = isB2C
-        ? eq(marketingSalesWon.customerType, 'student')
-        : inArray(marketingSalesWon.customerType, ['institution', 'organization', 'employer']);
-
-      const [leads, prospects, expectedOrders, salesWon] = await Promise.all([
-        db
-          .select({
-            id: marketingLeads.id,
-            client: marketingLeads.client,
-            revenue: marketingLeads.revenue,
-            stage: marketingLeads.stage,
-            marketerId: marketingLeads.marketerId,
-            updatedAt: marketingLeads.updatedAt,
-            bdName: sql<string>`CONCAT(${marketingUsers.firstName}, ' ', ${marketingUsers.lastName})`,
-            remarks: marketingLeads.remarks,
-            customerType: marketingLeads.customerType,
-          })
-          .from(marketingLeads)
-          .leftJoin(marketingUsers, eq(marketingLeads.marketerId, marketingUsers.id))
-          .where(buildWhere(marketingLeads, marketingLeads.date, leadsCustomerCond)),
-        db
-          .select({
-            id: marketingProspects.id,
-            client: marketingProspects.client,
-            revenue: marketingProspects.revenue,
-            stage: marketingProspects.stage,
-            marketerId: marketingProspects.marketerId,
-            updatedAt: marketingProspects.updatedAt,
-            bdName: sql<string>`CONCAT(${marketingUsers.firstName}, ' ', ${marketingUsers.lastName})`,
-            remarks: marketingProspects.remarks,
-            customerType: marketingProspects.customerType,
-          })
-          .from(marketingProspects)
-          .leftJoin(marketingUsers, eq(marketingProspects.marketerId, marketingUsers.id))
-          .where(buildWhere(marketingProspects, marketingProspects.date, customerCond)),
-        db
-          .select({
-            id: marketingExpectedOrders.id,
-            client: marketingExpectedOrders.organisationName,
-            revenue: marketingExpectedOrders.revenue,
-            stage: sql<string>`'expected_order'`,
-            marketerId: marketingExpectedOrders.marketerId,
-            updatedAt: marketingExpectedOrders.updatedAt,
-            bdName: sql<string>`CONCAT(${marketingUsers.firstName}, ' ', ${marketingUsers.lastName})`,
-            remarks: marketingExpectedOrders.comments,
-            customerType: marketingExpectedOrders.customerType,
-          })
-          .from(marketingExpectedOrders)
-          .leftJoin(marketingUsers, eq(marketingExpectedOrders.marketerId, marketingUsers.id))
-          .where(buildWhere(marketingExpectedOrders, marketingExpectedOrders.createdAt, expectedCustomerCond)),
-        db
-          .select({
-            id: marketingSalesWon.id,
-            client: marketingSalesWon.organisationName,
-            revenue: marketingSalesWon.contractAmount,
-            stage: sql<string>`'sales_won'`,
-            marketerId: marketingSalesWon.marketerId,
-            updatedAt: marketingSalesWon.updatedAt,
-            bdName: sql<string>`CONCAT(${marketingUsers.firstName}, ' ', ${marketingUsers.lastName})`,
-            remarks: marketingSalesWon.comments,
-            customerType: marketingSalesWon.customerType,
-          })
-          .from(marketingSalesWon)
-          .leftJoin(marketingUsers, eq(marketingSalesWon.marketerId, marketingUsers.id))
-          .where(buildWhere(marketingSalesWon, marketingSalesWon.createdAt, salesCustomerCond)),
-      ]);
+      // Fetch from cic_leads
+      const leads = await db
+        .select({
+          id: cicLeads.id,
+          client: sql<string>`COALESCE(${cicLeads.firstName} || ' ' || ${cicLeads.lastName}, ${cicLeads.organisationName}, 'Unknown Client')`,
+          revenue: cicLeads.estimatedAnnualPremium,
+          stage: cicLeads.stage,
+          marketerId: cicLeads.assignedToUserId,
+          updatedAt: cicLeads.updatedAt,
+          bdName: sql<string>`CONCAT(${marketingUsers.firstName}, ' ', ${marketingUsers.lastName})`,
+          remarks: cicLeads.notes,
+          customerType: cicLeads.pipelineType,
+          productLine: cicLeads.productLine,
+          sourceChannel: cicLeads.sourceChannel
+        })
+        .from(cicLeads)
+        .leftJoin(marketingUsers, eq(cicLeads.assignedToUserId, marketingUsers.id))
+        .where(and(...conditions));
 
       // Map to bifurcated Kanban columns
       const kanbanData = {
-        lead: leads,
-        prospect_registration: prospects.filter(p => p.stage === 'prospect_registration'),
-        prospect_booking: prospects.filter(p => p.stage === 'prospect_booking'),
-        prospect_opportunity: prospects.filter(p => p.stage === 'opportunity'),
-        prospect_engagement: prospects.filter(p => p.stage === 'engagement'),
-        expected_order: expectedOrders,
-        sales_won: salesWon,
-        converted: salesWon.filter(s => s.customerType === 'student'),
+        lead: leads.filter(l => l.stage === 'lead'),
+        prospect: leads.filter(l => l.stage === 'prospect'),
+        prospect_registration: isB2C ? leads.filter(l => l.stage === 'quote_underwriting') : [],
+        prospect_booking: isB2C ? leads.filter(l => l.stage === 'policy_issued') : [],
+        prospect_opportunity: !isB2C ? leads.filter(l => l.stage === 'proposal_underwriting') : [],
+        prospect_engagement: !isB2C ? leads.filter(l => l.stage === 'policy_issued') : [],
+        expected_order: leads.filter(l => l.stage === 'active' || l.stage === 'dormant'),
+        sales_won: leads.filter(l => l.stage === 'policy_issued' || l.stage === 'active'),
+        converted: isB2C ? leads.filter(l => l.stage === 'policy_issued') : [],
+        _meta: { configured: true }
       };
 
       res.json(kanbanData);
@@ -481,402 +398,122 @@ export function registerMarketingRoutes(app: Express) {
       const canViewAll = req.marketingUser?.role === 'admin' || req.marketingUser?.permissions?.includes('marketing.view_all');
       const filteredMarketerId = canViewAll ? undefined : req.marketingUser?.id;
 
-      const buildWhere = (table: any, dateField: any, extraCond?: any) => {
-        const conditions = [
-          sql`EXTRACT(YEAR FROM CAST(${dateField} AS DATE)) = ${currentYear}`
-        ];
-        if (filteredMarketerId) {
-          conditions.push(eq(table.marketerId, filteredMarketerId));
-        }
-        if (extraCond) conditions.push(extraCond);
-        return and(...conditions);
-      };
+      // Fetch Marketing Dept
+      const marketingDept = await db.select().from(departments).where(eq(departments.isMarketingDepartment, true)).limit(1);
+      const marketingDeptId = marketingDept.length > 0 ? marketingDept[0].id : null;
 
-      const customerCond = isB2C 
-        ? eq(marketingProspects.customerType, 'student')
-        : inArray(marketingProspects.customerType, ['institution', 'organization', 'employer']);
-        
-      const leadsCustomerCond = isB2C
-        ? eq(marketingLeads.customerType, 'student')
-        : inArray(marketingLeads.customerType, ['institution', 'organization', 'employer']);
-        
-      const expectedCustomerCond = isB2C
-        ? eq(marketingExpectedOrders.customerType, 'student')
-        : inArray(marketingExpectedOrders.customerType, ['institution', 'organization', 'employer']);
-        
-      const salesCustomerCond = isB2C
-        ? eq(marketingSalesWon.customerType, 'student')
-        : inArray(marketingSalesWon.customerType, ['institution', 'organization', 'employer']);
+      if (!marketingDeptId) {
+        return res.json({
+          forecast: [],
+          historicalData: { lead_entered: 0, opportunity_entered: 0, engagement_entered: 0, expected_order_entered: 0, sales_won: 0 },
+          studentData: { lead: 0, leadRevenue: 0, registration: 0, registrationRevenue: 0, booking: 0, bookingRevenue: 0, converted: 0, convertedRevenue: 0 },
+          studentBookingRate: 0,
+          studentRebookingRate: 0,
+          dormantStudentCount: 0,
+          expectedOrderDeals: [],
+          quarterlyTarget: 0,
+          bookingTarget: 0,
+          b2bStaleCount: { lead: 0, opportunity: 0, engagement: 0, expected_order: 0 },
+          totalStaleCount: 0
+        });
+      }
 
-      // 1. Fetch historical counts to compute dynamic stage probabilities
-      const [leadsCount, oppCount, engCount, expCount, wonCount] = await Promise.all([
-        db.select({ count: sql<number>`count(*)` }).from(marketingLeads).where(and(eq(marketingLeads.stage, 'lead'), leadsCustomerCond)),
-        db.select({ count: sql<number>`count(*)` }).from(marketingProspects).where(and(eq(marketingProspects.stage, 'opportunity'), customerCond)),
-        db.select({ count: sql<number>`count(*)` }).from(marketingProspects).where(and(eq(marketingProspects.stage, 'engagement'), customerCond)),
-        db.select({ count: sql<number>`count(*)` }).from(marketingExpectedOrders).where(expectedCustomerCond),
-        db.select({ count: sql<number>`count(*)` }).from(marketingSalesWon).where(salesCustomerCond),
-      ]);
+      // Filter by pipeline type
+      const pipelineFilter = isB2C ? eq(cicLeads.pipelineType, "b2c") : eq(cicLeads.pipelineType, "b2b");
+      
+      const conditions = [
+        eq(cicLeads.departmentId, marketingDeptId),
+        pipelineFilter,
+        sql`EXTRACT(YEAR FROM CAST(${cicLeads.createdAt} AS DATE)) = ${currentYear}`
+      ];
+      
+      if (filteredMarketerId) {
+        conditions.push(eq(cicLeads.assignedToUserId, filteredMarketerId));
+      }
 
-      const lCount = Number(leadsCount[0]?.count || 0);
-      const oCount = Number(oppCount[0]?.count || 0);
-      const eCount = Number(engCount[0]?.count || 0);
-      const exCount = Number(expCount[0]?.count || 0);
-      const wCount = Number(wonCount[0]?.count || 0);
+      const stageStats = await db
+        .select({
+          stage: cicLeads.stage,
+          count: count(),
+          total: sql<number>`COALESCE(SUM(CAST(REGEXP_REPLACE(COALESCE(${cicLeads.estimatedAnnualPremium}, '0'), '[^0-9.]', '', 'g') AS DECIMAL)), 0)`
+        })
+        .from(cicLeads)
+        .where(and(...conditions))
+        .groupBy(cicLeads.stage);
+
+      const statsMap = stageStats.reduce((acc, curr) => {
+        acc[curr.stage] = { count: Number(curr.count), total: Number(curr.total) };
+        return acc;
+      }, {} as Record<string, { count: number, total: number }>);
+
+      const getStat = (stage: string) => statsMap[stage] || { count: 0, total: 0 };
+
+      const lCount = getStat('lead').count;
+      const pCount = getStat('prospect').count;
+      const oCount = isB2C ? getStat('quote_underwriting').count : getStat('proposal_underwriting').count;
+      const exCount = getStat('active').count;
+      const wCount = getStat('policy_issued').count;
 
       const historicalData = {
         lead_entered: lCount,
-        opportunity_entered: oCount,
-        engagement_entered: eCount,
+        opportunity_entered: pCount,
+        engagement_entered: oCount,
         expected_order_entered: exCount,
         sales_won: wCount
       };
 
-      // Calculate dynamic conversion rate probabilities with fallback baseline
-      const isProbabilityEstimated = wCount < 5;
-
       const getStageProb = (stage: string): number => {
-        if (isProbabilityEstimated) {
-          switch (stage.toLowerCase()) {
-            case 'lead': return 0.15;
-            case 'opportunity': return 0.35;
-            case 'engagement': return 0.65;
-            case 'expected order':
-            case 'expected_order': return 0.85;
-            case 'sales won':
-            case 'sales_won': return 1.0;
-            default: return 0.15;
-          }
-        }
-
-        const leadEntered = lCount > 0 ? lCount : 1;
-        const oppEntered = oCount > 0 ? oCount : 1;
-        const engEntered = eCount > 0 ? eCount : 1;
-        const expEntered = exCount > 0 ? exCount : 1;
-
         switch (stage.toLowerCase()) {
-          case 'lead': return Math.min(1.0, wCount / leadEntered);
-          case 'opportunity': return Math.min(1.0, wCount / oppEntered);
-          case 'engagement': return Math.min(1.0, wCount / engEntered);
+          case 'lead': return 0.15;
+          case 'opportunity': return 0.35;
+          case 'engagement': return 0.65;
           case 'expected order':
-          case 'expected_order': return Math.min(1.0, wCount / expEntered);
+          case 'expected_order': return 0.85;
           case 'sales won':
           case 'sales_won': return 1.0;
-          default: return 0.1;
+          default: return 0.15;
         }
       };
 
-      const leadProb = getStageProb('lead');
-      const oppProb = getStageProb('opportunity');
-      const engProb = getStageProb('engagement');
-      const expProb = getStageProb('expected_order');
-      const wonProb = 1.0;
-
-      // 2. Fetch financial values for the B2B/B2C forecast
-      const [leads, prospects, expectedOrders, salesWon] = await Promise.all([
-        db.select({ revenue: marketingLeads.revenue }).from(marketingLeads).where(buildWhere(marketingLeads, marketingLeads.date, and(eq(marketingLeads.stage, 'lead'), leadsCustomerCond))),
-        db.select({ revenue: marketingProspects.revenue, stage: marketingProspects.stage }).from(marketingProspects).where(buildWhere(marketingProspects, marketingProspects.date, customerCond)),
-        db.select({ revenue: marketingExpectedOrders.revenue }).from(marketingExpectedOrders).where(buildWhere(marketingExpectedOrders, marketingExpectedOrders.createdAt, expectedCustomerCond)),
-        db.select({ revenue: marketingSalesWon.contractAmount }).from(marketingSalesWon).where(buildWhere(marketingSalesWon, marketingSalesWon.createdAt, salesCustomerCond)),
-      ]);
-
-      const getSum = (arr: any[]) => arr.reduce((acc, i) => {
-        const val = parseFloat((i.revenue || i.contractAmount || "0").replace(/[^0-9.]/g, ''));
-        return acc + (isNaN(val) ? 0 : val);
-      }, 0);
-
-      const leadRev = getSum(leads);
-      const oppRev = getSum(prospects.filter(p => p.stage === 'opportunity'));
-      const engRev = getSum(prospects.filter(p => p.stage === 'engagement'));
-      const expRev = getSum(expectedOrders);
-      const wonRev = getSum(salesWon);
+      const leadRev = getStat('lead').total;
+      const oppRev = getStat('prospect').total;
+      const engRev = isB2C ? getStat('quote_underwriting').total : getStat('proposal_underwriting').total;
+      const expRev = getStat('active').total;
+      const wonRev = getStat('policy_issued').total;
 
       const forecast = [
-        { stage: 'Lead', actual: leadRev, weighted: Math.round(leadRev * leadProb), prob: Math.round(leadProb * 100) },
-        { stage: 'Opportunity', actual: oppRev, weighted: Math.round(oppRev * oppProb), prob: Math.round(oppProb * 100) },
-        { stage: 'Engagement', actual: engRev, weighted: Math.round(engRev * engProb), prob: Math.round(engProb * 100) },
-        { stage: 'Expected Order', actual: expRev, weighted: Math.round(expRev * expProb), prob: Math.round(expProb * 100) },
-        { stage: 'Sales Won', actual: wonRev, weighted: Math.round(wonRev * wonProb), prob: 100 },
+        { stage: 'Lead', actual: leadRev, weighted: Math.round(leadRev * 0.15), prob: 15 },
+        { stage: 'Opportunity', actual: oppRev, weighted: Math.round(oppRev * 0.35), prob: 35 },
+        { stage: 'Engagement', actual: engRev, weighted: Math.round(engRev * 0.65), prob: 65 },
+        { stage: 'Expected Order', actual: expRev, weighted: Math.round(expRev * 0.85), prob: 85 },
+        { stage: 'Sales Won', actual: wonRev, weighted: wonRev, prob: 100 },
       ];
 
-      // 3. Fetch B2C Student pipeline all-time data to run snapshot cohort calculations
-      const [allStudentProspects, allStudentLeads, dormantStudentsListAll] = await Promise.all([
-        db.select().from(marketingProspects).where(eq(marketingProspects.customerType, 'student')),
-        db.select().from(marketingLeads).where(eq(marketingLeads.customerType, 'student')),
-        db.select().from(marketingLostProjects).where(eq(marketingLostProjects.status, 'dormant'))
-      ]);
+      // Simplified targets
+      const quarterlyTarget = 500000;
+      const bookingTarget = 100;
+      const studentRebookingRate = 85;
 
-      // Dynamic sitting cycle segmentation helper functions
-      function getSittingCycle(dateInput: string | Date | null) {
-        const date = dateInput ? new Date(dateInput) : new Date();
-        const month = date.getMonth() + 1; // 1-indexed (1-12)
-        const year = date.getFullYear();
-        
-        if (month >= 1 && month <= 4) {
-          return { cycle: 'April', year };
-        } else if (month >= 5 && month <= 8) {
-          return { cycle: 'August', year };
-        } else {
-          return { cycle: 'December', year };
-        }
-      }
-
-      function getPreviousCycle(cycle: string, year: number) {
-        if (cycle === 'April') return { cycle: 'December', year: year - 1 };
-        if (cycle === 'August') return { cycle: 'April', year };
-        return { cycle: 'August', year };
-      }
-
-      const queryCycle = req.query.cycle as string | undefined;
-      const queryYear = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
-
-      const now = new Date();
-      const currentCycleInfo = (queryCycle && queryYear)
-        ? { cycle: queryCycle, year: queryYear }
-        : getSittingCycle(now);
-      const prevCycleInfo = getPreviousCycle(currentCycleInfo.cycle, currentCycleInfo.year);
-
-      // Build B2C student records history from both active and dormant accounts
-      interface B2CStudentRecord {
-        email: string;
-        name: string;
-        stage: 'prospect_registration' | 'prospect_booking' | 'lead';
-        cycle: string;
-        year: number;
-        revenue: number;
-      }
-
-      const studentHistory: B2CStudentRecord[] = [];
-
-      for (const s of allStudentProspects) {
-        const dateVal = s.createdAt ? new Date(s.createdAt) : (s.date ? new Date(s.date) : new Date());
-        const { cycle, year } = getSittingCycle(dateVal);
-        const rev = parseFloat((s.revenue || "0").replace(/[^0-9.]/g, ''));
-        studentHistory.push({
-          email: (s.contactEmail || "").toLowerCase().trim(),
-          name: s.client || "",
-          stage: s.stage === 'prospect_booking' ? 'prospect_booking' : 'prospect_registration',
-          cycle,
-          year,
-          revenue: isNaN(rev) ? 0 : rev
-        });
-      }
-
-      for (const d of dormantStudentsListAll) {
-        const dateVal = d.createdAt ? new Date(d.createdAt) : new Date();
-        const { cycle, year } = getSittingCycle(dateVal);
-        const rev = parseFloat((d.revenue || "0").replace(/[^0-9.]/g, ''));
-        studentHistory.push({
-          email: (d.contactEmail || "").toLowerCase().trim(),
-          name: d.organisationName || "",
-          stage: d.product === "Student Booking" ? 'prospect_booking' : 'prospect_registration',
-          cycle,
-          year,
-          revenue: isNaN(rev) ? 0 : rev
-        });
-      }
-
-      for (const l of allStudentLeads) {
-        const dateVal = l.createdAt ? new Date(l.createdAt) : (l.date ? new Date(l.date) : new Date());
-        const { cycle, year } = getSittingCycle(dateVal);
-        const rev = parseFloat((l.revenue || "0").replace(/[^0-9.]/g, ''));
-        studentHistory.push({
-          email: (l.contactEmail || "").toLowerCase().trim(),
-          name: l.client || "",
-          stage: 'lead',
-          cycle,
-          year,
-          revenue: isNaN(rev) ? 0 : rev
-        });
-      }
-
-      // Filter cohorts for current sitting (n) and previous sitting (n-1)
-      const currentCohort = studentHistory.filter(
-        r => r.cycle === currentCycleInfo.cycle && r.year === currentCycleInfo.year
-      );
-      const prevCohort = studentHistory.filter(
-        r => r.cycle === prevCycleInfo.cycle && r.year === prevCycleInfo.year
-      );
-
-      // Current Sitting Cohort Metrics
-      const currentLeads = currentCohort.filter(r => r.stage === 'lead');
-      const currentRegistered = currentCohort.filter(r => r.stage === 'prospect_registration');
-      const currentBooked = currentCohort.filter(r => r.stage === 'prospect_booking');
-      
-      const currentPool = [...currentRegistered, ...currentBooked];
-      const currentBookedCount = currentBooked.length;
-
-      // Previous Sitting Cohort Metrics
-      const prevRegistered = prevCohort.filter(r => r.stage === 'prospect_registration');
-      const prevBooked = prevCohort.filter(r => r.stage === 'prospect_booking');
-
-      const prevPool = [...prevRegistered, ...prevBooked];
-      const prevBookedCount = prevBooked.length;
-
-      // Booking Rate calculations
-      const bookingRatePrev = prevPool.length > 0 ? (prevBookedCount / prevPool.length) : 0.15;
-      const bookingRateCurrent = currentPool.length > 0 ? (currentBookedCount / currentPool.length) : 0.15;
-
-      // Rebooking Rate: (Booked(n) ∩ Booked(n-1)) / Booked(n-1)
-      const bookedEmailsCurrent = new Set(currentBooked.map(r => r.email).filter(Boolean));
-      const bookedEmailsPrev = new Set(prevBooked.map(r => r.email).filter(Boolean));
-      const returningRebookersList = [...bookedEmailsCurrent].filter(email => bookedEmailsPrev.has(email));
-      const studentReturningRebookers = returningRebookersList.length;
-
-      const studentRebookingRate = prevBookedCount > 0 
-        ? Math.round((studentReturningRebookers / prevBookedCount) * 100) 
-        : 85;
-
-      // Map current sitting totals for dashboard stats cards and charts
       const studentData = {
-        lead: currentLeads.length,
-        leadRevenue: currentLeads.reduce((acc, r) => acc + r.revenue, 0),
-        registration: currentRegistered.length,
-        registrationRevenue: currentRegistered.reduce((acc, r) => acc + r.revenue, 0),
-        booking: currentBookedCount,
-        bookingRevenue: currentBooked.reduce((acc, r) => acc + r.revenue, 0),
-        converted: currentBookedCount, // booking serves as conversion baseline
-        convertedRevenue: currentBooked.reduce((acc, r) => acc + r.revenue, 0)
+        lead: lCount,
+        leadRevenue: leadRev,
+        registration: pCount,
+        registrationRevenue: oppRev,
+        booking: wCount,
+        bookingRevenue: wonRev,
+        converted: wCount,
+        convertedRevenue: wonRev
       };
 
-      const studentHistoricalData = {
-        lead_entered: allStudentLeads.length,
-        converted: currentBookedCount
-      };
+      const isProbabilityEstimated = wCount < 5;
 
-      // Set bookingRatePrev as forward predictor studentBookingRate for frontend projected converts
-      const studentBookingRate = bookingRatePrev;
-
-      // 4. Fetch dynamic expected order deals for concentration risk checks
-      const activeExpectedOrders = await db
-        .select({ organisationName: marketingExpectedOrders.organisationName, revenue: marketingExpectedOrders.revenue })
-        .from(marketingExpectedOrders)
-        .where(buildWhere(marketingExpectedOrders, marketingExpectedOrders.createdAt));
-
-      const expectedOrderDeals = activeExpectedOrders.map(d => {
-        const val = parseFloat((d.revenue || "0").replace(/[^0-9.]/g, ''));
-        return {
-          name: d.organisationName,
-          value: isNaN(val) ? 0 : val
-        };
-      });
-
-      // 5. Fetch B2C target from annual summaries based on selected year
-      const selectedYearVal = queryYear || currentCycleInfo.year;
-      const annualSummary = await db
-        .select({ bookingTarget: marketingAnnualSummary.bookingTarget, target: marketingAnnualSummary.target })
-        .from(marketingAnnualSummary)
-        .where(eq(marketingAnnualSummary.year, selectedYearVal))
-        .limit(1);
+      const avgSalesCycleLength = 60; // Simplified for now since cic_leads handles history differently
       
-      const quarterlyTarget = annualSummary[0]?.target ? parseFloat(annualSummary[0].target.replace(/[^0-9.]/g, '')) / 4 : 500000;
-      const bookingTarget = annualSummary[0]?.bookingTarget || 100; // default target to 100 sits if not specified
-
-      // 6. Dormant student count (120-day KASNEB exam cycle)
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - 120);
-      const dormantStudentsList = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(marketingProspects)
-        .where(
-          and(
-            eq(marketingProspects.customerType, 'student'),
-            eq(marketingProspects.stage, 'prospect_registration'),
-            sql`CAST(${marketingProspects.updatedAt} AS TIMESTAMP) < ${cutoffDate.toISOString()}`
-          )
-        );
-      const dormantStudentCount = Number(dormantStudentsList[0]?.count || 0);
-
-      // 7. Calculate B2B individual deal SLAs
-      const STAGE_SLA_DAYS: Record<string, number> = {
-        'lead': 14,
-        'opportunity': 30,
-        'engagement': 45,
-        'expected_order': 30
-      };
-
-      const staleCounts: Record<string, number> = { lead: 0, opportunity: 0, engagement: 0, expected_order: 0 };
-
-      // B2B Leads
-      const b2bLeads = await db.select().from(marketingLeads).where(
-        and(
-          eq(marketingLeads.stage, 'lead'),
-          inArray(marketingLeads.customerType, ['institution', 'organization', 'employer'])
-        )
-      );
-      for (const l of b2bLeads) {
-        const dateVal = l.createdAt ? new Date(l.createdAt) : (l.date ? new Date(l.date) : new Date());
-        const age = Math.round((Date.now() - dateVal.getTime()) / (1000 * 60 * 60 * 24));
-        if (age > STAGE_SLA_DAYS['lead']) staleCounts['lead']++;
-      }
-
-      // B2B Prospects (Opportunity & Engagement)
-      const b2bProspects = await db.select().from(marketingProspects).where(
-        and(
-          inArray(marketingProspects.stage, ['opportunity', 'engagement']),
-          inArray(marketingProspects.customerType, ['institution', 'organization', 'employer'])
-        )
-      );
-      for (const p of b2bProspects) {
-        const dateVal = p.createdAt ? new Date(p.createdAt) : (p.date ? new Date(p.date) : new Date());
-        const age = Math.round((Date.now() - dateVal.getTime()) / (1000 * 60 * 60 * 24));
-        const limit = STAGE_SLA_DAYS[p.stage.toLowerCase()] || 30;
-        if (age > limit) staleCounts[p.stage.toLowerCase()]++;
-      }
-
-      // B2B Expected Orders
-      const b2bExpectedOrders = await db.select().from(marketingExpectedOrders).where(
-        inArray(marketingExpectedOrders.customerType, ['institution', 'organization', 'employer'])
-      );
-      for (const ex of b2bExpectedOrders) {
-        const dateVal = ex.createdAt ? new Date(ex.createdAt) : new Date();
-        const age = Math.round((Date.now() - dateVal.getTime()) / (1000 * 60 * 60 * 24));
-        if (age > STAGE_SLA_DAYS['expected_order']) staleCounts['expected_order']++;
-      }
-
-      // 8. Calculate dynamic win rate & average sales cycle length
-      const b2bSalesWon = await db.select().from(marketingSalesWon).where(
-        inArray(marketingSalesWon.customerType, ['institution', 'organization', 'employer'])
-      );
-
-      let totalCycleDays = 0;
-      let cycleCount = 0;
-
-      for (const won of b2bSalesWon) {
-        const email = won.contactEmail ? won.contactEmail.toLowerCase().trim() : '';
-        const orgName = won.organisationName ? won.organisationName.toLowerCase().trim() : '';
-        
-        let matchingLead = await db.select().from(marketingLeads).where(
-          or(
-            email ? eq(marketingLeads.contactEmail, email) : sql`false`,
-            orgName ? eq(marketingLeads.client, orgName) : sql`false`
-          )
-        ).limit(1);
-
-        if (matchingLead.length > 0) {
-          const leadDate = matchingLead[0].createdAt ? new Date(matchingLead[0].createdAt) : new Date(matchingLead[0].date);
-          const wonDate = won.createdAt ? new Date(won.createdAt) : new Date();
-          const diffDays = Math.round((wonDate.getTime() - leadDate.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays > 0) {
-            totalCycleDays += diffDays;
-            cycleCount++;
-          }
-        }
-      }
-
-      const avgSalesCycleLength = cycleCount > 0 ? Math.round(totalCycleDays / cycleCount) : 60;
-
-      // Dynamic B2B active counts
-      const b2bOppsCount = prospects.filter(p => p.stage === 'opportunity').length;
-      const b2bEngsCount = prospects.filter(p => p.stage === 'engagement').length;
-      const b2bExpCount = expectedOrders.length;
-      const activeDealsCount = b2bOppsCount + b2bEngsCount + b2bExpCount;
-
-      const activeB2bList = [
-        ...prospects.filter(p => p.stage === 'opportunity' || p.stage === 'engagement'),
-        ...expectedOrders
-      ];
+      const activeDealsCount = pCount + oCount + exCount;
+      const activeDealsTotal = oppRev + engRev + expRev;
+      
       const avgDealValue = activeDealsCount > 0 
-        ? Math.round(getSum(activeB2bList) / activeDealsCount)
+        ? Math.round(activeDealsTotal / activeDealsCount)
         : 0;
 
       const winRateVal = wCount > 0 && oCount > 0 ? (wCount / oCount) : 0.35; 
@@ -887,20 +524,17 @@ export function registerMarketingRoutes(app: Express) {
       res.json({
         forecast,
         historicalData,
-        quarterlyTarget,
-        expectedOrderDeals,
         studentData,
-        studentHistoricalData: {
-          lead_entered: studentHistoricalData.lead_entered,
-          converted: studentHistoricalData.converted,
-          bookingRate: studentBookingRate
-        },
-        studentReturningRebookers,
+        studentHistoricalData: { lead_entered: lCount, converted: wCount },
+        studentBookingRate: 0.15,
         studentRebookingRate,
-        dormantStudentCount,
+        dormantStudentCount: getStat('dormant').count,
+        expectedOrderDeals: [],
+        quarterlyTarget,
         bookingTarget,
+        b2bStaleCount: { lead: 0, opportunity: 0, engagement: 0, expected_order: 0 },
+        totalStaleCount: 0,
         isProbabilityEstimated,
-        staleCounts,
         pipelineVelocity,
         avgSalesCycleLength
       });
@@ -2657,6 +2291,146 @@ export function registerMarketingRoutes(app: Express) {
       return res.status(500).json({ error: "Failed to generate report" });
     }
   });
+
+  // CIC Pipeline Endpoint
+  app.get("/api/cic/pipeline", marketingAuth, marketingUserAuth, async (req, res) => {
+    try {
+      const { stage, search, sort, page = "1", limit = "20" } = req.query;
+      let pipeline_type = req.query.pipeline_type as string | undefined;
+      if (pipeline_type === "undefined") pipeline_type = undefined;
+
+      // Ensure user has access and enforce bdType rules
+      const bdType = req.marketingUser?.bdType || "both";
+      let effectivePipelineType = pipeline_type;
+
+      if (bdType === "b2b" && pipeline_type !== "all") effectivePipelineType = "b2b";
+      else if (bdType === "b2c" && pipeline_type !== "all") effectivePipelineType = "b2c";
+      else if (pipeline_type === "all" || !pipeline_type) effectivePipelineType = undefined; // fetch both
+
+      let query: any = db.select({ lead: cicLeads }).from(cicLeads);
+
+      const conditions: any[] = [];
+      if (effectivePipelineType) {
+        conditions.push(eq(cicLeads.pipelineType, String(effectivePipelineType) as any));
+      }
+      
+      if (stage) {
+        // Handle unified stages if passed
+        if (stage === "underwriting") {
+          conditions.push(inArray(cicLeads.stage, ["quote_underwriting", "proposal_underwriting"]));
+        } else if (stage === "post_sale") {
+          conditions.push(inArray(cicLeads.stage, ["active", "dormant"]));
+        } else {
+          conditions.push(eq(cicLeads.stage, String(stage) as any));
+        }
+      }
+
+      if (search) {
+        conditions.push(or(
+          ilike(cicLeads.firstName, `%${search}%`),
+          ilike(cicLeads.lastName, `%${search}%`),
+          ilike(cicLeads.organisationName, `%${search}%`),
+          ilike(cicLeads.leadRef, `%${search}%`)
+        ));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      // Quick implementation of sorting
+      if (sort === 'newest') query = query.orderBy(desc(cicLeads.createdAt));
+      else if (sort === 'oldest') query = query.orderBy(asc(cicLeads.createdAt));
+      else query = query.orderBy(desc(cicLeads.createdAt));
+
+      const allResults = await query;
+      const total = allResults.length;
+      
+      const p = parseInt(String(page)) || 1;
+      const l = parseInt(String(limit)) || 20;
+      const paginatedResults = allResults.slice((p - 1) * l, p * l).map((r: any) => r.lead);
+
+      // Mapping to B2C/B2B cards with full schema fields
+      const leads = paginatedResults.map((r: any) => {
+        const lead = r.lead || r; // Fix object wrapping
+        const daysInStage = Math.round((Date.now() - new Date(lead.updatedAt || lead.createdAt || Date.now()).getTime()) / (1000 * 60 * 60 * 24));
+        if (lead.pipelineType === 'b2c') {
+          return {
+            leadId: lead.id,
+            contactName: [lead.firstName, lead.lastName].filter(Boolean).join(' ') || '',
+            phone: lead.phone || '',
+            productLine: lead.productLine,
+            sumInsuredEstimateKes: lead.estimatedAnnualPremium ? Number(lead.estimatedAnnualPremium) : null,
+            assignedAgentName: null,
+            sourceChannel: lead.sourceChannel,
+            daysInCurrentStage: daysInStage,
+            pipelineStage: lead.stage,
+            nationalIdNumber: lead.nationalIdNumber,
+            county: lead.county,
+            coverType: lead.coverType,
+            quotedPremiumKes: lead.quotedPremiumKes ? Number(lead.quotedPremiumKes) : null,
+            underwritingDecision: lead.underwritingDecision,
+            dateOfUnderwritingDecision: lead.dateOfUnderwritingDecision,
+            lapseReason: lead.lapseReason,
+            dormantSinceDate: lead.dormantSinceDate,
+            renewalCampaignStatus: lead.renewalCampaignStatus,
+            policyStartDate: lead.policyStartDateProposed, // pre-policy
+            paymentMethod: lead.paymentMethod,
+          };
+        } else {
+          return {
+            leadId: lead.id,
+            organisationName: lead.organisationName || [lead.firstName, lead.lastName].filter(Boolean).join(' ') || '',
+            schemeType: lead.productLine,
+            totalLives: lead.totalMemberCount || lead.groupSize || 0,
+            groupPremiumEstimateKes: lead.estimatedAnnualPremium ? Number(lead.estimatedAnnualPremium) : null,
+            relationshipOfficerName: lead.relationshipOfficerAssigned || null,
+            daysInCurrentStage: daysInStage,
+            pipelineStage: lead.stage,
+            county: lead.county,
+            sectorIndustry: lead.sectorIndustry,
+            priorLossRatio: lead.priorLossRatio,
+            underwritingDecision: lead.underwritingDecision,
+            dateOfUnderwritingDecision: lead.dateOfUnderwritingDecision,
+            premiumCollectionMethod: lead.paymentMethod,
+            lastPremiumReceivedDate: lead.updatedAt, // Mocked for now since policies table is separate
+            outstandingPremiumKes: null,
+            renewalDueDate: lead.policyEndDateProposed,
+          };
+        }
+      });
+
+      // Calculate Summary
+      let totalPremium = 0;
+      let wonCount = 0;
+      let totalCount = allResults.length;
+      const leadsByStage: Record<string, number> = {};
+
+      for (const r of allResults as any[]) {
+        if (r.lead.estimatedAnnualPremium) totalPremium += Number(r.lead.estimatedAnnualPremium);
+        if (r.lead.stage === 'policy_issued') wonCount++;
+        leadsByStage[r.lead.stage as string] = (leadsByStage[r.lead.stage as string] || 0) + 1;
+      }
+
+      res.json({
+        leads,
+        total,
+        page: p,
+        pages: Math.ceil(total / l),
+        marketingDeptConfigured: true,
+        summary: {
+          totalLeadsThisMonth: total,
+          leadsByStage,
+          conversionRateLeadToPolicy: totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 0,
+          totalPremiumInPipelineKes: totalPremium
+        }
+      });
+    } catch (error) {
+      console.error("Fetch CIC pipeline error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
 }
 
 // Helper function to convert data to CSV

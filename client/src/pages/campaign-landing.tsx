@@ -45,7 +45,7 @@ export default function CampaignLanding({ id }: { id: string }) {
               <p className="text-gray-500 font-medium">This link may have expired or the campaign has been concluded.</p>
             </div>
             <Button variant="outline" className="rounded-xl h-12" onClick={() => window.location.href = 'https://kasneb.or.ke'}>
-              Visit KASNEB Website
+              Visit CIC Website
             </Button>
           </CardContent>
         </Card>
@@ -65,7 +65,7 @@ export default function CampaignLanding({ id }: { id: string }) {
         <div className="max-w-4xl mx-auto space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-xs font-black uppercase tracking-[0.2em]">
             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            Official KASNEB Campaign
+            Official CIC Campaign
           </div>
           <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none">
             {campaign.name}
@@ -152,7 +152,7 @@ export default function CampaignLanding({ id }: { id: string }) {
         <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 opacity-60">
            <img src="/logo.webp" alt="CIC Logo" className="h-10 grayscale hover:grayscale-0 transition-all cursor-pointer" />
            <div className="text-center md:text-right space-y-1">
-              <p className="text-xs font-black uppercase tracking-widest text-gray-900">KASNEB Towers</p>
+              <p className="text-xs font-black uppercase tracking-widest text-gray-900">CIC Plaza</p>
               <p className="text-[10px] font-bold text-gray-500">Hospital Road, Upper Hill, Nairobi, Kenya</p>
               <p className="text-[10px] font-bold text-gray-400">© {new Date().getFullYear()} All Rights Reserved</p>
            </div>

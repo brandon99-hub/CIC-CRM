@@ -27,6 +27,10 @@ export interface Department {
     code: string;
     description: string | null;
     parentDepartmentId: string | null;
+    isMarketingDepartment: boolean;
+    handlesLeads: boolean;
+    handlesB2c: boolean;
+    handlesB2b: boolean;
     isActive: boolean;
 }
 

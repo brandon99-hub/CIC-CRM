@@ -33,7 +33,7 @@ export const CAMPAIGN_TEMPLATES = {
               </div>
             </div>
             <div class="footer">
-              <strong style="color: #004E98;">KASNEB Towers</strong><br>
+              <strong style="color: #004E98;">CIC Plaza</strong><br>
               Hospital Road, Upper Hill, Nairobi, Kenya<br>
               &copy; ${new Date().getFullYear()} Official Communication
             </div>
@@ -72,7 +72,7 @@ export const CAMPAIGN_TEMPLATES = {
         </div>
         <div class="seal">
           Verified Official Communication<br>
-          KASNEB Administration
+          CIC Administration
         </div>
       </div>
     </body>

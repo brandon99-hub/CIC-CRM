@@ -4,7 +4,7 @@ import {
     ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
 } from "recharts";
 import {
-    KpiCard, ProgressBar, KASNEB_COLORS, CHART_COLORS, formatLabel,
+    KpiCard, ProgressBar, CIC_COLORS, CHART_COLORS, formatLabel,
     type StakeholderStats, type CaseStats,
 } from "./executive-shared";
 import { Users, Briefcase, CheckCircle2, Clock, Megaphone, Star } from "lucide-react";
@@ -49,11 +49,11 @@ export function ExecutiveSummary({ stakeholderStats, caseStats, slaCompliance, t
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <KpiCard title="Total Stakeholders" value={stakeholderStats.total || 600} icon={<Users className="h-5 w-5" style={{ color: KASNEB_COLORS.blue }} />} color={KASNEB_COLORS.blue} trend={{ value: "+12.5% MoM", positive: true }} />
-                <KpiCard title="Active Cases" value={activeCases || 86} icon={<Briefcase className="h-5 w-5" style={{ color: KASNEB_COLORS.orange }} />} color={KASNEB_COLORS.orange} trend={{ value: "+4.2% MoM", positive: false }} />
-                <KpiCard title="SLA Compliance" value={`${slaCompliance}%`} icon={<CheckCircle2 className="h-5 w-5" style={{ color: KASNEB_COLORS.green }} />} color={KASNEB_COLORS.green} trend={{ value: "+2.1% improvement", positive: true }} />
-                <KpiCard title="Avg Resolution Time" value="19h" icon={<Clock className="h-5 w-5" style={{ color: KASNEB_COLORS.gold }} />} color={KASNEB_COLORS.gold} trend={{ value: "-1.5h MoM", positive: true }} />
-                <KpiCard title="Total Campaigns" value={totalCampaigns} icon={<Megaphone className="h-5 w-5" style={{ color: KASNEB_COLORS.orange }} />} color={KASNEB_COLORS.orange} trend={{ value: "+30% MoM", positive: true }} />
+                <KpiCard title="Total Stakeholders" value={stakeholderStats.total || 600} icon={<Users className="h-5 w-5" style={{ color: CIC_COLORS.blue }} />} color={CIC_COLORS.blue} trend={{ value: "+12.5% MoM", positive: true }} />
+                <KpiCard title="Active Cases" value={activeCases || 86} icon={<Briefcase className="h-5 w-5" style={{ color: CIC_COLORS.orange }} />} color={CIC_COLORS.orange} trend={{ value: "+4.2% MoM", positive: false }} />
+                <KpiCard title="SLA Compliance" value={`${slaCompliance}%`} icon={<CheckCircle2 className="h-5 w-5" style={{ color: CIC_COLORS.green }} />} color={CIC_COLORS.green} trend={{ value: "+2.1% improvement", positive: true }} />
+                <KpiCard title="Avg Resolution Time" value="19h" icon={<Clock className="h-5 w-5" style={{ color: CIC_COLORS.gold }} />} color={CIC_COLORS.gold} trend={{ value: "-1.5h MoM", positive: true }} />
+                <KpiCard title="Total Campaigns" value={totalCampaigns} icon={<Megaphone className="h-5 w-5" style={{ color: CIC_COLORS.orange }} />} color={CIC_COLORS.orange} trend={{ value: "+30% MoM", positive: true }} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -65,9 +65,9 @@ export function ExecutiveSummary({ stakeholderStats, caseStats, slaCompliance, t
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="month" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} />
                                 <Tooltip /><Legend />
-                                <Line type="monotone" dataKey="opened" stroke={KASNEB_COLORS.blue} strokeWidth={2} name="Opened" dot={{ r: 4 }} />
-                                <Line type="monotone" dataKey="resolved" stroke={KASNEB_COLORS.green} strokeWidth={2} name="Resolved" dot={{ r: 4 }} />
-                                <Line type="monotone" dataKey="escalated" stroke={KASNEB_COLORS.orange} strokeWidth={2} name="Escalated" dot={{ r: 4 }} />
+                                <Line type="monotone" dataKey="opened" stroke={CIC_COLORS.blue} strokeWidth={2} name="Opened" dot={{ r: 4 }} />
+                                <Line type="monotone" dataKey="resolved" stroke={CIC_COLORS.green} strokeWidth={2} name="Resolved" dot={{ r: 4 }} />
+                                <Line type="monotone" dataKey="escalated" stroke={CIC_COLORS.orange} strokeWidth={2} name="Escalated" dot={{ r: 4 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>

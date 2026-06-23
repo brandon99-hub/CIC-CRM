@@ -58,7 +58,7 @@ export function IntakeStation({ onCaseCreated, onBack }: IntakeStationProps) {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Debounce KASNEB ID
+    // Debounce CIC ID
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedId(searchId), 600);
         return () => clearTimeout(timer);
@@ -188,7 +188,7 @@ export function IntakeStation({ onCaseCreated, onBack }: IntakeStationProps) {
                         <div className="relative w-full md:w-[400px] group">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-[#004E98] transition-colors" />
                             <Input
-                                placeholder="ENTER KASNEB ID (REG #)..."
+                                placeholder="ENTER CIC ID (REG #)..."
                                 value={searchId}
                                 onChange={(e) => setSearchId(e.target.value)}
                                 className="pl-10 h-10 text-[10px] font-black uppercase tracking-widest bg-gray-50/50 border-gray-100/50 rounded-xl focus:ring-2 focus:ring-[#004E98]/10 transition-all placeholder:text-gray-300 shadow-sm"
@@ -224,7 +224,7 @@ export function IntakeStation({ onCaseCreated, onBack }: IntakeStationProps) {
                     <div className="space-y-1">
                         <p className="text-lg font-black text-amber-900 uppercase tracking-tight">Stakeholder Not Found</p>
                         <p className="text-sm text-amber-700/60 font-medium max-w-sm">
-                            This ID is not registered in our CRM. Please guide the stakeholder to the official KASNEB registration portal.
+                            This ID is not registered in our CRM. Please guide the stakeholder to the official CIC registration portal.
                         </p>
                     </div>
                 </div>

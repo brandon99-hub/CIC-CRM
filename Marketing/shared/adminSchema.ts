@@ -39,6 +39,16 @@ export const departments = pgTable("departments", {
   parentDepartmentId: uuid("parent_department_id"),
   headUserId: uuid("head_user_id"),
   isActive: boolean("is_active").default(true).notNull(),
+  // ── CIC Pipeline Flags ─────────────────────────────────────────────
+  // Only one department may have isMarketingDepartment = true at a time.
+  // Enforced by a partial unique index:
+  //   CREATE UNIQUE INDEX dept_marketing_flag_idx ON departments(is_marketing_department)
+  //   WHERE is_marketing_department = true;
+  isMarketingDepartment: boolean("is_marketing_department").default(false).notNull(),
+  handlesLeads: boolean("handles_leads").default(false).notNull(),     // dept receives new leads
+  handlesB2c: boolean("handles_b2c").default(false).notNull(),         // B2C pipeline enabled
+  handlesB2b: boolean("handles_b2b").default(false).notNull(),         // B2B pipeline enabled
+  // ───────────────────────────────────────────────────────────────────
   createdAt: text("created_at").default(sql`now()`).notNull(),
   updatedAt: text("updated_at").default(sql`now()`).notNull(),
 });
@@ -52,6 +62,13 @@ export const serviceCategories = pgTable("service_categories", {
   defaultPriority: text("default_priority").default("medium").notNull(),
   keywords: jsonb("keywords").default([]).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  // ── CIC Pipeline Flags ─────────────────────────────────────────────
+  // Specifies which CIC pipeline types this service category covers.
+  // Values: 'b2c', 'b2b', or 'both'
+  pipelineTypesHandled: text("pipeline_types_handled").default("both").notNull(),
+  // Align to CIC product lines: motor | life | medical | property | marine | pension | group_life | micro_insurance
+  productLines: jsonb("product_lines").default([]).notNull(),
+  // ───────────────────────────────────────────────────────────────────
   createdAt: text("created_at").default(sql`now()`).notNull(),
   updatedAt: text("updated_at").default(sql`now()`).notNull(),
 }, (table) => ({
