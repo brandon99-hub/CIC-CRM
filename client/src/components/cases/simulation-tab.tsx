@@ -22,7 +22,8 @@ import {
     Building2,
     Briefcase,
     FileText,
-    PenTool
+    PenTool,
+    BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -182,6 +183,24 @@ export function SimulationTab({ onTriggerScenario, onSimulateSignal }: Simulatio
         }
     };
 
+    const handleSeedTemplates = async () => {
+        setLoading("seed-templates");
+        try {
+            const token = localStorage.getItem("marketingToken");
+            const res = await fetch("/api/simulation/seed-templates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to seed templates");
+            toast({ title: "Templates Seeded", description: data.message });
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message || "Failed to seed templates.", variant: "destructive" });
+        } finally {
+            setLoading(null);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,6 +272,27 @@ export function SimulationTab({ onTriggerScenario, onSimulateSignal }: Simulatio
                         >
                             {loading === "clear" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
                             Clear
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Seed Templates */}
+                <Card className="bg-purple-50/50 border-purple-200 border-dashed">
+                    <CardContent className="py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <BookOpen className="h-5 w-5 text-purple-600" />
+                            <div>
+                                <p className="text-sm font-bold text-purple-700">Seed Templates</p>
+                                <p className="text-xs text-purple-600/70">Generate default Knowledge Base templates</p>
+                            </div>
+                        </div>
+                        <Button
+                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold h-9"
+                            disabled={!!loading}
+                            onClick={handleSeedTemplates}
+                        >
+                            {loading === "seed-templates" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <BookOpen className="h-4 w-4 mr-2" />}
+                            Seed
                         </Button>
                     </CardContent>
                 </Card>

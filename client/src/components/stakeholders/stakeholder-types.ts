@@ -35,6 +35,11 @@ export interface Stakeholder {
     tags?: string[];
     createdAt?: string;
     updatedAt?: string;
+    nationalId?: string;
+    kraPin?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    consentGiven?: boolean;
     // CIC Insurance-specific fields
     productLine?: string;               // motor | life | medical | property | marine | pension | group_life | micro_insurance
     policyRenewalDate?: string;         // ISO date — triggers renewal automation

@@ -461,13 +461,13 @@ export function KnowledgeBaseTab({ user, permissions = [] }: KnowledgeBaseTabPro
 
                             <div className="space-y-3">
                                 <Label className="text-[11px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2 ml-1">
-                                    <MessageSquare className="h-4 w-4" /> Content / Standard Response
+                                    <MessageSquare className="h-4 w-4" /> Root Cause
                                 </Label>
                                 <div className="p-6 bg-emerald-50/30 rounded-[2rem] border border-emerald-100/30 relative">
                                     <Textarea
-                                        value={kbForm.initialResponse}
-                                        onChange={(e) => setKbForm({ ...kbForm, initialResponse: e.target.value })}
-                                        placeholder="Type the core content or standard reply here..."
+                                        value={kbForm.rootCause}
+                                        onChange={(e) => setKbForm({ ...kbForm, rootCause: e.target.value })}
+                                        placeholder="Type the root cause here..."
                                         className="bg-transparent border-0 focus-visible:ring-0 p-0 text-sm font-bold text-emerald-900 resize-none min-h-[100px] leading-relaxed"
                                     />
                                 </div>

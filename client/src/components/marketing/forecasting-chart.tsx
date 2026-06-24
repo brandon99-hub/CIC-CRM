@@ -571,7 +571,7 @@ export function ForecastingChart({
                         <Card className="border-none shadow-sm bg-white rounded-2xl p-6 ring-1 ring-black/[0.03]">
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-[2px] mb-1">Confirmed Revenue</p>
                             <h3 className="text-xl font-black text-[#01a64e] tracking-tight">{formatCurrency(confirmedRevenue)}</h3>
-                            <p className="text-[10px] text-gray-500 mt-2 font-semibold">Booked students × dynamic pricing</p>
+                            <p className="text-[10px] text-gray-500 mt-2 font-semibold">Issued policies × expected premium</p>
                         </Card>
                         <Card className="border-none shadow-sm bg-white rounded-2xl p-6 ring-1 ring-black/[0.03]">
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-[2px] mb-1">Projected Revenue</p>
@@ -584,7 +584,7 @@ export function ForecastingChart({
                             <p className="text-[10px] text-gray-500 mt-2 font-semibold">Versus the last registration sitting</p>
                         </Card>
                         <Card className={`border-none shadow-sm rounded-2xl p-6 ring-1 ring-black/[0.03] ${dormantStudentCount > 0 ? 'bg-red-50/20 border border-red-100' : 'bg-white'}`}>
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-[2px] mb-1">Dormant Students</p>
+                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-[2px] mb-1">Dormant Prospects</p>
                             <h3 className={`text-xl font-black tracking-tight ${dormantStudentCount > 0 ? 'text-red-600' : 'text-slate-800'}`}>{dormantStudentCount}</h3>
                             <p className="text-[10px] text-gray-500 mt-2 font-semibold">Exceeds 120-day CIC policy renewal cycle</p>
                         </Card>
@@ -594,10 +594,10 @@ export function ForecastingChart({
                         <CardHeader className="flex flex-row items-center justify-between pb-2 pt-6 px-6">
                             <div>
                                 <CardTitle className="text-sm font-black text-gray-900 uppercase tracking-tighter flex items-center gap-2">
-                                    Student Conversion Forecasting
+                                    Individual Conversion Forecasting
                                     <div className="p-1 bg-[#185FA5]/10 rounded-full"><Users className="h-3 w-3 text-[#185FA5]" /></div>
                                 </CardTitle>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Live Registration & Booking Conversion</p>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Live Pipeline Conversion</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 {/* Sitting Cycle Dropdown */}
@@ -661,19 +661,19 @@ export function ForecastingChart({
                                             wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
                                         />
                                         <Bar 
-                                            name="Raw Student Volume" 
+                                            name="Prospect Volume" 
                                             dataKey="rawVolume" 
                                             fill="#B5D4F4" 
                                             radius={[6, 6, 0, 0]} 
                                         />
                                         <Bar 
-                                            name="Projected Converts" 
+                                            name="Projected Conversions" 
                                             dataKey="projectedConverts" 
                                             fill="#185FA5" 
                                             radius={[6, 6, 0, 0]} 
                                         />
                                         <Bar 
-                                            name="Returning Rebookers" 
+                                            name="Expected Renewals" 
                                             dataKey="returningRebookers" 
                                             fill="#9FE1CB" 
                                             radius={[6, 6, 0, 0]} 
@@ -683,7 +683,7 @@ export function ForecastingChart({
                                                 y={bookingTarget} 
                                                 stroke="#ef4444" 
                                                 strokeDasharray="4 4" 
-                                                label={{ value: `Target: ${bookingTarget} Sits`, position: 'top', fill: '#ef4444', fontSize: 10, fontWeight: 700 }} 
+                                                label={{ value: `Target: ${bookingTarget} Policies`, position: 'top', fill: '#ef4444', fontSize: 10, fontWeight: 700 }} 
                                             />
                                         )}
                                     </BarChart>

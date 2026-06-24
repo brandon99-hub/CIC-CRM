@@ -114,10 +114,10 @@ export function MarketingDocumentForm({ isOpen, onClose, onSuccess }: MarketingD
     const documentTypes = [
         { id: "general", label: "General Attachment" },
         { id: "identification", label: "Identification (ID/Passport)" },
-        { id: "academic", label: "Academic Transcript" },
-        { id: "financial", label: "Financial / Fee Receipt" },
-        { id: "medical", label: "Medical Certificate" },
-        { id: "accreditation", label: "Accreditation Evidence" }
+        { id: "proposal", label: "Proposal Form" },
+        { id: "kyc", label: "KYC Document (ID/Passport)" },
+        { id: "logbook", label: "Logbook" },
+        { id: "pin", label: "PIN Certificate" }
     ];
 
     return (

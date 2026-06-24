@@ -45,20 +45,13 @@ export function SalesWonChart({
 }: SalesWonChartProps) {
   const safeData = Array.isArray(data) ? data : [];
   
-  const isStudent = pipelineMode === "student" || pipelineMode === "B2C";
-  const defaultTitle = isStudent ? "Bookings vs Target" : "Sales Won Per Marketer";
-  const defaultDescription = isStudent ? "Individual ambassador performance against booking targets" : "Individual marketer sales performance against targets";
+  const defaultTitle = "Policies Issued vs Target";
+  const defaultDescription = "Individual marketer performance against policy issuance targets";
 
   const chartTitle = title || defaultTitle;
   const chartDescription = description || defaultDescription;
 
   const formatValue = (amount: number) => {
-    if (isStudent) {
-      return new Intl.NumberFormat('en-KE', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount) + " Sits";
-    }
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES',
@@ -101,7 +94,7 @@ export function SalesWonChart({
                 order: 2,
               },
               {
-                label: isStudent ? 'Bookings' : 'Sales Won',
+                label: 'Policies Issued',
                 data: safeData.map(item => item.salesWon),
                 backgroundColor: 'rgba(34, 197, 94, 0.6)',
                 borderColor: 'rgba(34, 197, 94, 1)',

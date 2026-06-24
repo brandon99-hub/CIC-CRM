@@ -27,7 +27,7 @@ import { useRegion, type Region } from "@/lib/RegionContext";
 
 const GET_ALL_DASHBOARDS = (t: any) => [
   { id: "cases", label: t("cases.title", "Case Management & SLA"), icon: Briefcase, path: "/cases/dashboard", color: "#F59E0B", bgColor: "bg-amber-50" },
-  { id: "marketing", label: t("marketing.title", "Marketing & Engagement"), icon: TrendingUp, path: "/marketing/dashboard", color: "#004E98", bgColor: "bg-blue-50" },
+  { id: "marketing", label: t("marketing.title", "Sales & Marketing"), icon: TrendingUp, path: "/marketing/dashboard", color: "#004E98", bgColor: "bg-blue-50" },
   { id: "communications", label: t("communications.title", "Communications Hub"), icon: MessageSquare, path: "/communications/dashboard", color: "#0284C7", bgColor: "bg-sky-50" },
   { id: "stakeholders", label: t("stakeholders_dash.title", "Stakeholder Intelligence"), icon: Users, path: "/stakeholders/dashboard", color: "#10B981", bgColor: "bg-emerald-50" },
   { id: "executive", label: t("executive.title", "Executive Dashboard"), icon: BarChart3, path: "/executive/dashboard", color: "#8B5CF6", bgColor: "bg-violet-50" },

@@ -42,36 +42,34 @@ interface MarketingKanbanProps {
 
 const B2C_COLUMNS = [
     { id: 'lead', label: 'Lead', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50/30' },
-    { id: 'prospect_registration', label: 'Prospect Registration', icon: Target, color: 'text-amber-500', bg: 'bg-amber-50/30' },
-    { id: 'prospect_booking', label: 'Prospect Booking', icon: TrendingUp, color: 'text-[#D0AC01]', bg: 'bg-yellow-50/30' },
+    { id: 'prospect', label: 'Prospect', icon: Target, color: 'text-amber-500', bg: 'bg-amber-50/30' },
+    { id: 'quote_underwriting', label: 'Quote & Underwriting', icon: TrendingUp, color: 'text-[#D0AC01]', bg: 'bg-yellow-50/30' },
+    { id: 'policy_issued', label: 'Policy Issued', icon: DollarSign, color: 'text-[#01a64e]', bg: 'bg-emerald-50/30' },
 ];
 
 const B2B_COLUMNS = [
     { id: 'lead', label: 'Lead', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50/30' },
-    { id: 'prospect_opportunity', label: 'Prospect Opportunity', icon: Target, color: 'text-amber-500', bg: 'bg-amber-50/30' },
-    { id: 'prospect_engagement', label: 'Prospect Engagement', icon: Target, color: 'text-[#D0AC01]', bg: 'bg-yellow-50/30' },
-    { id: 'expected_order', label: 'Expected Order', icon: TrendingUp, color: 'text-[#e55f00]', bg: 'bg-orange-50/30' },
-    { id: 'sales_won', label: 'Sales Won', icon: DollarSign, color: 'text-[#01a64e]', bg: 'bg-emerald-50/30' },
+    { id: 'prospect', label: 'Prospect', icon: Target, color: 'text-amber-500', bg: 'bg-amber-50/30' },
+    { id: 'proposal_underwriting', label: 'Proposal & Underwriting', icon: Target, color: 'text-[#D0AC01]', bg: 'bg-yellow-50/30' },
+    { id: 'active', label: 'Active', icon: TrendingUp, color: 'text-[#e55f00]', bg: 'bg-orange-50/30' },
+    { id: 'policy_issued', label: 'Policy Issued', icon: DollarSign, color: 'text-[#01a64e]', bg: 'bg-emerald-50/30' },
 ];
 
 const STAGE_LABELS: Record<string, string> = {
     lead: 'Lead',
-    prospect_registration: 'Prospect Registration',
-    prospect_booking: 'Prospect Booking',
-    converted: 'Converted',
-    dormant: 'Dormant Student',
-    prospect_opportunity: 'Prospect Opportunity',
-    prospect_engagement: 'Prospect Engagement',
-    expected_order: 'Expected Order',
-    sales_won: 'Sales Won',
+    prospect: 'Prospect',
+    quote_underwriting: 'Quote & Underwriting',
+    proposal_underwriting: 'Proposal & Underwriting',
+    active: 'Active',
+    policy_issued: 'Policy Issued',
     lost: 'Lost',
 };
 
 export function MarketingKanban({ data, pipelineType, onStatusChange, isLoading }: MarketingKanbanProps) {
     const columns = pipelineType === 'B2C' ? B2C_COLUMNS : B2B_COLUMNS;
     const availableStages = pipelineType === 'B2C' 
-        ? ['lead', 'prospect_registration', 'prospect_booking', 'dormant', 'lost']
-        : ['lead', 'prospect_opportunity', 'prospect_engagement', 'expected_order', 'sales_won', 'lost'];
+        ? ['lead', 'prospect', 'quote_underwriting', 'policy_issued', 'lost']
+        : ['lead', 'prospect', 'proposal_underwriting', 'active', 'policy_issued', 'lost'];
     if (isLoading) {
         return (
             <div className="flex overflow-x-auto pb-4 gap-4 sm:gap-6 min-h-[400px]">

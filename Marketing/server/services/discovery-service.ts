@@ -88,26 +88,6 @@ export const DiscoveryService = {
     async ensureAnchorsExist() {
         console.log("[Discovery] Phase 0: Syncing Department & Organization anchors...");
 
-        // 1. Sync Departments from admin settings
-        const systemDepts = await db.select().from(departments);
-        const existingDeptStakeholders = await db.select({ organization: stakeholders.organization })
-            .from(stakeholders)
-            .where(eq(stakeholders.type, "department"));
-
-        const existingDeptNames = new Set(existingDeptStakeholders.map(s => s.organization?.toLowerCase()));
-        const deptsToCreate = systemDepts.filter(d => !existingDeptNames.has(d.name.toLowerCase()));
-
-        if (deptsToCreate.length > 0) {
-            console.log(`[Discovery] Creating ${deptsToCreate.length} missing department anchors...`);
-            await db.insert(stakeholders).values(deptsToCreate.map(d => ({
-                firstName: d.name,
-                lastName: "Department",
-                organization: d.name, // Used for display logic
-                type: "department",
-                isActive: true
-            })));
-        }
-
         // 2. Sync Organizations (Institutions/Employers) from data strings
         const uniqueOrgs = await db.select({ org: sql<string>`DISTINCT ${stakeholders.organization}` })
             .from(stakeholders)

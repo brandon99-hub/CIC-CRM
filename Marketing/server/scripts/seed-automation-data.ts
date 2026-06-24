@@ -121,9 +121,28 @@ async function seedAutomation() {
 
         const insertedSlas = [];
         for (const sla of genericSlas) {
+            let timeline = sla.resolutionTimeMinutes / 60;
+            let timelineUnit = "hours";
+            
+            if (sla.resolutionTimeMinutes % 1440 === 0) {
+                timeline = sla.resolutionTimeMinutes / 1440;
+                timelineUnit = "days";
+            } else if (sla.resolutionTimeMinutes === 480) {
+                timeline = 1;
+                timelineUnit = "working days";
+            }
+
+            const slaVal = {
+                name: sla.name,
+                priority: sla.priority,
+                responseTimeMinutes: sla.responseTimeMinutes,
+                timeline,
+                timelineUnit,
+            };
+
             const existing = await db.select().from(slaRules).where(eq(slaRules.name, sla.name)).limit(1);
             if (existing.length === 0) {
-                const res = await db.insert(slaRules).values(sla as any).returning();
+                const res = await db.insert(slaRules).values(slaVal as any).returning();
                 insertedSlas.push(res[0]);
                 console.log(`✅ Created Global SLA: ${sla.name}`);
             } else {
@@ -153,11 +172,23 @@ async function seedAutomation() {
                 continue;
             }
 
+            let timeline = spec.res / 60;
+            let timelineUnit = "hours";
+            
+            if (spec.res % 1440 === 0) {
+                timeline = spec.res / 1440;
+                timelineUnit = "days";
+            } else if (spec.res === 480) {
+                timeline = 1;
+                timelineUnit = "working days";
+            }
+
             const slaVal = {
                 name: spec.name,
                 priority: spec.priority,
                 responseTimeMinutes: spec.resp,
-                resolutionTimeMinutes: spec.res,
+                timeline: timeline,
+                timelineUnit: timelineUnit,
                 metricType: spec.metricType,
                 serviceCategoryId: cat.id
             };

@@ -578,7 +578,7 @@ export function UserManagement() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
                         <div className="space-y-2">
                           <Label htmlFor="bookingTarget" className="text-sm font-semibold text-emerald-900">
-                            Exam Bookings Target (Count)
+                            Policy Issuance Target (Count)
                           </Label>
                           <Input
                             id="bookingTarget"

@@ -21,10 +21,10 @@ import { cn } from "@/lib/utils";
 const DOCUMENT_TYPES = [
     { value: "general", label: "General Attachment" },
     { value: "identification", label: "Identification (ID/Passport)" },
-    { value: "academic", label: "Academic Transcript" },
-    { value: "financial", label: "Financial / Fee Receipt" },
-    { value: "medical", label: "Medical Certificate" },
-    { value: "accreditation", label: "Accreditation Evidence" }
+    { value: "proposal", label: "Proposal Form" },
+    { value: "kyc", label: "KYC Document (ID/Passport)" },
+    { value: "logbook", label: "Logbook" },
+    { value: "pin", label: "PIN Certificate" }
 ];
 
 interface Document {
@@ -41,7 +41,7 @@ interface Document {
 
 interface DocumentAttachmentSectionProps {
     entityId: string;
-    entityType: 'lead' | 'prospect' | 'expected_order' | 'sales_won';
+    entityType: 'lead' | 'prospect' | 'expected_order' | 'sales_won' | 'cic_lead';
     title?: string;
 }
 
@@ -54,24 +54,25 @@ export function DocumentAttachmentSection({ entityId, entityType, title = "Attac
 
     const token = () => localStorage.getItem("marketingToken");
 
+    // Map entityType to database column mapping
+    const propertyMap: Record<string, string> = {
+        'lead': 'leadId',
+        'prospect': 'prospectId',
+        'expected_order': 'expectedOrderId',
+        'sales_won': 'salesWonId',
+        'cic_lead': 'leadId'
+    };
+    const propName = propertyMap[entityType] || `${entityType}Id`;
+
     // Fetch documents for this specific entity
     const { data: documents = [], isLoading } = useQuery<Document[]>({
         queryKey: ["marketing", "documents", entityType, entityId],
         queryFn: async () => {
-            const res = await fetch(`/api/marketing/documents?${entityType}Id=${entityId}`, {
+            const res = await fetch(`/api/marketing/documents?${propName}=${entityId}`, {
                 headers: { Authorization: `Bearer ${token()}` }
             });
             if (!res.ok) throw new Error("Failed to fetch documents");
             const allDocs = await res.json();
-            // Filter on frontend if backend doesn't support direct filtering yet
-            // Map the entityType to the actual property name in the document object
-            const propertyMap: Record<string, string> = {
-                'lead': 'leadId',
-                'prospect': 'prospectId',
-                'expected_order': 'expectedOrderId',
-                'sales_won': 'salesWonId'
-            };
-            const propName = propertyMap[entityType] || `${entityType}Id`;
             return allDocs.filter((doc: any) => doc[propName] === entityId);
         },
         enabled: !!entityId
@@ -91,7 +92,7 @@ export function DocumentAttachmentSection({ entityId, entityType, title = "Attac
                 fileSize: file.size,
                 url: mockUrl,
                 documentType: selectedDocType,
-                [`${entityType}Id`]: entityId
+                [propName]: entityId
             };
 
             const res = await fetch("/api/marketing/documents", {

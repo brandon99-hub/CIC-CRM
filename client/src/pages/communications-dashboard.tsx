@@ -23,6 +23,24 @@ export default function CommunicationsDashboard() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [activeSocialTab, setActiveSocialTab] = useState<string>("facebook");
+  const [fromCaseNumber, setFromCaseNumber] = useState<string | null>(null);
+
+  // Parse URL search params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const conversation = params.get("conversation");
+    const fromCase = params.get("fromCase");
+
+    if (tab) setActiveSection(tab);
+    if (conversation) setActiveConversationId(conversation);
+    if (fromCase) setFromCaseNumber(fromCase);
+    
+    // Clear URL without refreshing
+    if (tab || conversation || fromCase) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const { data: signals } = useQuery({
     queryKey: ["triage", "signals"],
@@ -44,9 +62,12 @@ export default function CommunicationsDashboard() {
     }
   }, [setLocation]);
 
-  // Clear active conversation when switching between inboxes
+  // Clear active conversation and case context when switching between inboxes manually
   useEffect(() => {
-    setActiveConversationId(null);
+    if (!window.location.search.includes("tab=")) {
+       setActiveConversationId(null);
+       setFromCaseNumber(null);
+    }
   }, [activeSection]);
 
   const navGroups: NavGroup[] = [
@@ -85,10 +106,20 @@ export default function CommunicationsDashboard() {
     post_insights: "Analyze engagement and performance metrics for your published post",
   };
 
-  const breadcrumbs = activeSection === "post_insights" ? [
-    { label: "Social Publisher", onClick: () => setActiveSection("social") },
-    { label: "Post Insights", active: true }
-  ] : undefined;
+  let breadcrumbs: any = undefined;
+  if (activeSection === "post_insights") {
+    breadcrumbs = [
+      { label: "Social Publisher", onClick: () => setActiveSection("social") },
+      { label: "Post Insights", active: true }
+    ];
+  } else if (fromCaseNumber) {
+    breadcrumbs = [
+      { label: "Dashboard", onClick: () => setLocation("/dashboard") },
+      { label: "Cases", onClick: () => setLocation("/cases/dashboard") },
+      { label: `Case #${fromCaseNumber}`, onClick: () => setLocation(`/cases/dashboard`) },
+      { label: activeSection === "email-inbox" ? "Email Inbox" : "WhatsApp Inbox", active: true }
+    ];
+  }
 
   if (!user) return null;
 
@@ -222,7 +253,7 @@ export default function CommunicationsDashboard() {
 
         {activeSection === "email-inbox" && (
           <div className="flex-1 overflow-hidden">
-            <EmailInbox />
+            <EmailInbox initialConversationId={activeConversationId} />
           </div>
         )}
 

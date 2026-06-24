@@ -67,7 +67,7 @@ export function DashboardLayout({
     const hubVisible = dashboardAccess.length > 1;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="h-screen bg-gray-50 flex overflow-hidden">
             {/* Sidebar */}
             <DashboardSidebar
                 title={title}

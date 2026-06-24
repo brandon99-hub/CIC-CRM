@@ -46,3 +46,4 @@ replit.nix
 *.db
 *.sqlite
 permissions_dump.json
+cic_crm_fields.json

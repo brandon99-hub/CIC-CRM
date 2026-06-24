@@ -62,6 +62,16 @@ export default function CaseDashboard() {
     }
   });
 
+  const { data: pendingSignals } = useQuery<any[]>({
+    queryKey: ["admin", "intake-signals", "pending"],
+    queryFn: async () => {
+      const res = await apiRequest("/api/admin/intake-signals?status=pending");
+      return res.json();
+    },
+    refetchInterval: 15000,
+  });
+  const pendingTriageCount = pendingSignals?.length || 0;
+
   // 3. Actions
   const handleLogout = () => {
     localStorage.clear();
@@ -90,14 +100,14 @@ export default function CaseDashboard() {
         { id: "overview", label: "Overview", icon: LayoutDashboard },
         { id: "cases", label: "All Cases", icon: FolderOpen },
         { id: "collaboration", label: "Discussions", icon: MessageSquare },
-        { id: "myshifts", label: "My Shifts", icon: Calendar },
+        // { id: "myshifts", label: "My Shifts", icon: Calendar },
       ],
     },
     {
       title: "Strategic Intelligence",
       items: [
         { id: "knowledge", label: "Knowledge Base", icon: BookOpen },
-        ...(isManager ? [{ id: "triage", label: "Triage", icon: Filter }] : []),
+        ...(isManager ? [{ id: "triage", label: "Unassigned", icon: Filter, badge: pendingTriageCount > 0 ? pendingTriageCount : undefined }] : []),
       ],
     },
     {

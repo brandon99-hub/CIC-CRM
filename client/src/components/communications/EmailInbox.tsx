@@ -3,8 +3,8 @@ import { Mail } from "lucide-react";
 import { ConversationList } from "./ConversationList";
 import { ChatWindow } from "./ChatWindow";
 
-export function EmailInbox() {
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+export function EmailInbox({ initialConversationId }: { initialConversationId?: string | null }) {
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId || null);
 
   return (
     <div className="flex h-full bg-white relative">

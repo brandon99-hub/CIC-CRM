@@ -81,20 +81,14 @@ const MarketingOverviewHeader = ({
     setPipelineMode: (mode: "B2C" | "B2B") => void,
     user: MarketingUser
 }) => {
-    const prospects = pipelineMode === "B2C"
-        ? (((isAdmin ? adminStats?.b2cStats : stats?.b2cStats) as any)?.registered?.count ?? 0) + (((isAdmin ? adminStats?.b2cStats : stats?.b2cStats) as any)?.bookings?.count ?? 0)
-        : (isAdmin ? (adminStats?.totalProspectsCount || 0) : (stats?.prospectsCount || 0));
-    const leads = pipelineMode === "B2C"
-        ? (((isAdmin ? adminStats?.b2cStats : stats?.b2cStats) as any)?.leads?.count ?? 0)
-        : (isAdmin ? (adminStats?.totalLeadsCount || 0) : (stats?.leadsCount || 0));
-    const salesWon = pipelineMode === "B2C"
-        ? (((isAdmin ? adminStats?.b2cStats : stats?.b2cStats) as any)?.converted?.count ?? 0)
-        : (isAdmin ? (adminStats?.totalSalesWonCount || 0) : (stats?.salesWonCount || 0));
+    const prospects = isAdmin ? (adminStats?.totalProspectsCount || 0) : (stats?.prospectsCount || 0);
+    const leads = isAdmin ? (adminStats?.totalLeadsCount || 0) : (stats?.leadsCount || 0);
+    const salesWon = isAdmin ? (adminStats?.totalSalesWonCount || 0) : (stats?.salesWonCount || 0);
 
     const marketingStats = [
         {
-            label: pipelineMode === "B2C" ? "Pipeline (Students)" : "Pipeline (Business)",
-            value: pipelineMode === "B2C" ? `${prospects} Enrolled` : `${prospects} Prospects`,
+            label: pipelineMode === "B2C" ? "Pipeline (Individual)" : "Pipeline (Corporate)",
+            value: `${prospects} Prospects`,
             description: isAdmin
                 ? `${prospects} total items across the entire team's active pipeline.`
                 : `${prospects} items currently in your active follow-up queue.`,
@@ -217,7 +211,7 @@ export function MarketingOverview({
                             )}
                         >
                             <GraduationCap className="h-4 w-4" />
-                            Student Pipeline
+                            Individual Pipeline
                         </button>
                         <button
                             type="button"
@@ -230,7 +224,7 @@ export function MarketingOverview({
                             )}
                         >
                             <Building2 className="h-4 w-4" />
-                            Partner Pipeline
+                            Corporate Pipeline
                         </button>
                     </div>
                 </div>
@@ -239,16 +233,16 @@ export function MarketingOverview({
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {pipelineMode === "B2C" ? (
-                    // B2C Student Track Stats Row
+                    // B2C Individual Track Stats Row
                     <Fragment>
                         <Card className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Active Student Leads</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-600">Leads Generated</CardTitle>
                                 <div className="p-2 bg-[#004E98]/10 rounded-lg"><Users className="h-4 w-4 text-[#004E98]" /></div>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-gray-900">
-                                    {currentB2cStats?.leads?.count ?? 0}
+                                    {isAdmin ? adminStats?.totalLeadsCount || 0 : stats?.leadsCount || 0}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">Total leads generated</p>
                             </CardContent>
@@ -256,46 +250,40 @@ export function MarketingOverview({
 
                         <Card className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Registered Students</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-600">Active Prospects</CardTitle>
                                 <div className="p-2 bg-[#01a64e]/10 rounded-lg"><Award className="h-4 w-4 text-[#01a64e]" /></div>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-gray-900">
-                                    {currentB2cStats?.registered?.count ?? 0}
+                                    {isAdmin ? adminStats?.totalProspectsCount || 0 : stats?.prospectsCount || 0}
                                 </div>
-                                <p className="text-xs text-[#01a64e] font-medium mt-1">
-                                    Value: {formatCurrency(currentB2cStats?.registered?.value ?? 0)}
-                                </p>
+                                <p className="text-xs text-[#01a64e] font-medium mt-1">Currently in pipeline</p>
                             </CardContent>
                         </Card>
 
                         <Card className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Exam Bookings</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-600">Expected Policies</CardTitle>
                                 <div className="p-2 bg-[#D0AC01]/10 rounded-lg"><TrendingUp className="h-4 w-4 text-[#D0AC01]" /></div>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-gray-900">
-                                    {formatCurrency(currentB2cStats?.bookings?.value ?? 0)}
+                                    {isAdmin ? adminStats?.totalExpectedOrdersCount || 0 : stats?.expectedOrdersCount || 0}
                                 </div>
-                                <p className="text-xs text-[#D0AC01] font-medium mt-1">
-                                    {currentB2cStats?.bookings?.count ?? 0} sits (sitting fees value)
-                                </p>
+                                <p className="text-xs text-[#D0AC01] font-medium mt-1">Pending issuance</p>
                             </CardContent>
                         </Card>
 
                         <Card className="hover:shadow-md transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600">Converted (Rebookings)</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-600">Policies Issued</CardTitle>
                                 <div className="p-2 bg-[#004E98]/10 rounded-lg"><Medal className="h-4 w-4 text-[#004E98]" /></div>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-gray-900">
-                                    {formatCurrency(currentB2cStats?.converted?.value ?? 0)}
+                                    {isAdmin ? adminStats?.totalSalesWonCount || 0 : stats?.salesWonCount || 0}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    {currentB2cStats?.converted?.count ?? 0} recurring student sits
-                                </p>
+                                <p className="text-xs text-gray-500 mt-1">Successful conversions</p>
                             </CardContent>
                         </Card>
                     </Fragment>
@@ -387,7 +375,7 @@ export function MarketingOverview({
                     </div>
                 </div>
                 <MarketingKanban 
-                    data={kanbanData || { lead: [], prospect_registration: [], prospect_booking: [], converted: [], prospect_engagement: [], expected_order: [], sales_won: [] }} 
+                    data={kanbanData || { lead: [], prospect: [], quote_underwriting: [], proposal_underwriting: [], active: [], policy_issued: [], lost: [], dormant: [] }} 
                     pipelineType={pipelineMode}
                     isLoading={kanbanLoading}
                     onStatusChange={onKanbanStatusChange}
@@ -449,7 +437,11 @@ export function MarketingOverview({
                                 <Select value={selectedMonth} onValueChange={onMonthChange}>
                                     <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All Months</SelectItem>
+                                        <SelectItem value="all">All Year</SelectItem>
+                                        <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
+                                        <SelectItem value="Q2">Q2 (Apr-Jun)</SelectItem>
+                                        <SelectItem value="Q3">Q3 (Jul-Sep)</SelectItem>
+                                        <SelectItem value="Q4">Q4 (Oct-Dec)</SelectItem>
                                         {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, i) => (
                                             <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
                                         ))}
@@ -487,8 +479,8 @@ export function MarketingOverview({
                                             <SalesWonChart 
                                                 data={analytics.salesWonPerMarketer} 
                                                 pipelineMode={pipelineMode}
-                                                title={pipelineMode === "B2C" ? "Bookings vs Target" : "Sales Won vs Target"} 
-                                                description={pipelineMode === "B2C" ? "Individual ambassador performance against booking targets" : "Individual marketer performance against targets"} 
+                                                title={pipelineMode === "B2C" ? "Policies Issued vs Target" : "Sales Won vs Target"} 
+                                                description={pipelineMode === "B2C" ? "Individual ambassador performance against policy issuance targets" : "Individual marketer performance against targets"} 
                                             />
                                         )}
 
@@ -520,14 +512,14 @@ export function MarketingOverview({
                                                     <TableHeader>
                                                         {pipelineMode === "B2C" ? (
                                                             <TableRow>
-                                                                <TableHead>Brand Ambassador</TableHead>
-                                                                <TableHead className="text-right">Converted Students</TableHead>
-                                                                <TableHead className="text-right">New Registrations</TableHead>
-                                                                <TableHead className="text-right">Registrations Value</TableHead>
+                                                                <TableHead>Agent</TableHead>
+                                                                <TableHead className="text-right">Policies Issued</TableHead>
+                                                                <TableHead className="text-right">New Prospects</TableHead>
+                                                                <TableHead className="text-right">Prospects Value</TableHead>
                                                                 <TableHead className="text-right">Commission Rate</TableHead>
                                                                 <TableHead className="text-right">Commission Payout</TableHead>
-                                                                <TableHead className="text-right">Exam Bookings</TableHead>
-                                                                <TableHead className="text-right">Bookings Target</TableHead>
+                                                                <TableHead className="text-right">Expected Policies</TableHead>
+                                                                <TableHead className="text-right">Issuance Target</TableHead>
                                                                 <TableHead className="text-right">Target Achieved</TableHead>
                                                             </TableRow>
                                                         ) : (
@@ -604,8 +596,8 @@ export function MarketingOverview({
                                         <CardTitle className="text-lg font-semibold text-gray-900">Top Performers</CardTitle>
                                         <CardDescription className="text-gray-600">
                                             {pipelineMode === "B2C" 
-                                                ? "Ranked by weighted performance score (New Registrations 40%, Exam Bookings 25%, Student Leads 20%, Booking Target 15%)"
-                                                : "Ranked by weighted performance score (Sales Won 40%, Expected Orders 25%, Leads 20%, Conversion 15%)"
+                                                ? "Ranked by weighted performance score (Sales Won 40%, Expected Orders 25%, Leads 20%, Target 15%)"
+                                                : "Ranked by weighted performance score (Sales Won 40%, Expected Orders 25%, Leads 20%, Target 15%)"
                                             }
                                         </CardDescription>
                                     </CardHeader>

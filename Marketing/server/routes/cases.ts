@@ -15,7 +15,7 @@ import {
 import { conversations } from "../../shared/commsSchema";
 import { marketingUsers, marketingProspects, marketingLeads } from "../../shared/schema";
 import { cicLeads } from "../../shared/cicSchema";
-import { eq, ne, desc, sql, ilike, or, and, count, between, asc, inArray, gte, lte, isNull } from "drizzle-orm";
+import { eq, ne, desc, sql, ilike, or, and, count, between, asc, inArray, gte, lte, isNull, isNotNull } from "drizzle-orm";
 import { sanitizeSearchInput, sanitizeInteger } from "../utils/sanitize";
 import { AssignmentService } from "../services/assignment-service";
 import { checkPermission } from "../middleware/marketingAuth";
@@ -774,11 +774,8 @@ export function registerCaseRoutes(app: Express) {
         ))
         .leftJoin(marketingUsers, eq(cases.assignedTo, marketingUsers.id))
         .where(and(
-          or(
-            eq(cases.slaBreached, true),
-            sql`${cases.slaDeadline} IS NOT NULL AND ${cases.slaDeadline}:: timestamptz < ${now}::timestamptz AND ${cases.status} NOT IN('resolved', 'closed')`,
-            sql`${cases.slaResponseDeadline} IS NOT NULL AND ${cases.slaResponseDeadline}:: timestamptz < ${now}::timestamptz AND ${cases.firstResponseAt} IS NULL`
-          ),
+          isNotNull(cases.slaDeadline),
+          sql`${cases.status} NOT IN ('resolved', 'closed')`,
           ...(rbacConditions.length > 0 ? rbacConditions : [])
         ))
         .orderBy(desc(cases.createdAt))
@@ -1634,6 +1631,7 @@ export function registerCaseRoutes(app: Express) {
           initialResponse: knowledgeBase.initialResponse,
           resolutionSummary: knowledgeBase.resolutionSummary,
           sopSteps: knowledgeBase.sopSteps,
+          rootCause: knowledgeBase.rootCause,
           viewCount: knowledgeBase.viewCount,
           helpfulCount: knowledgeBase.helpfulCount,
           createdBy: knowledgeBase.createdBy,

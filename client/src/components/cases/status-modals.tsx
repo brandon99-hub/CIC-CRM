@@ -250,7 +250,22 @@ export function ResolveModal({ open, onOpenChange, onConfirm, isProcessing, case
         if (template) {
             setResolution(template.resolutionSummary || template.content || "");
             setRootCause(template.rootCause || "");
-            setSopSteps(template.sopSteps?.length > 0 ? template.sopSteps : [""]);
+            
+            let parsedSteps: string[] = [];
+            let stepsSource = template.sopSteps;
+            
+            if (typeof stepsSource === 'string') {
+                try {
+                    stepsSource = JSON.parse(stepsSource);
+                } catch (e) {
+                    console.warn("Failed to parse sopSteps string", e);
+                }
+            }
+
+            if (Array.isArray(stepsSource)) {
+                parsedSteps = stepsSource.filter((s: any) => typeof s === 'string' && s.trim() !== "");
+            }
+            setSopSteps(parsedSteps.length > 0 ? parsedSteps : [""]);
         }
     };
 

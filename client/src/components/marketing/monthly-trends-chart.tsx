@@ -69,12 +69,10 @@ export function MonthlyTrendsChart({
   const maxExpectedOrders = safeData.length ? Math.max(...safeData.map(d => d.expectedOrders)) : 0;
   const maxValue = Math.max(maxLeads, maxSalesWon, maxExpectedOrders);
 
-  const isB2C = pipelineMode === "B2C" || pipelineMode === "student";
-
-  // Dynamic labels based on pipelineMode
-  const labelLeads = isB2C ? "Leads" : "Prospects";
-  const labelSalesWon = isB2C ? "New Registrations" : "Sales Won";
-  const labelExpectedOrders = isB2C ? "Exam Bookings" : "Expected Orders";
+  // Dynamic labels
+  const labelLeads = "Leads";
+  const labelExpectedOrders = "Underwriting Count";
+  const labelSalesWon = "Policies Issued";
 
   return (
     <Card className="border-0 shadow-sm">
@@ -163,9 +161,6 @@ export function MonthlyTrendsChart({
                 callbacks: {
                   label: function(context: any) {
                     const value = context.parsed.y;
-                    if (isB2C) {
-                      return `${context.dataset.label}: ${value}`;
-                    }
                     return `${context.dataset.label}: ${formatCurrency(value)}`;
                   }
                 }
@@ -191,9 +186,6 @@ export function MonthlyTrendsChart({
                 ticks: {
                   callback: function(value: any) {
                     if (typeof value === 'number') {
-                      if (isB2C) {
-                        return formatNumber(value);
-                      }
                       return formatCurrency(value);
                     }
                     return value;

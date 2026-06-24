@@ -125,6 +125,7 @@ export default function CaseWorkspace() {
 }
 
 export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?: () => void; user: any }) {
+    const [, setLocation] = useLocation();
     const queryClient = useQueryClient();
     const [isUpdating, setIsUpdating] = useState(false);
     const [showAckModal, setShowAckModal] = useState(false);
@@ -261,6 +262,15 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
         document.getElementById("case-chat-window")?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const handleAction = () => {
+        if (workspace?.conversationId) {
+            const tab = caseData.channel === 'email' ? 'email-inbox' : 'whatsapp-inbox';
+            setLocation(`/communications/dashboard?tab=${tab}&conversation=${workspace.conversationId}&fromCase=${caseData.caseNumber}`);
+        } else {
+            scrollToChat();
+        }
+    };
+
     const resolutionDuration = caseData.resolvedAt && caseData.firstResponseAt
         ? Math.round((new Date(caseData.resolvedAt).getTime() - new Date(caseData.firstResponseAt).getTime()) / (1000 * 60))
         : null;
@@ -385,7 +395,7 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
                     <div className={`flex w-full sm:w-auto ${!caseData.firstResponseAt && slaRule?.responseTimeMinutes ? 'flex-col gap-2' : 'flex-col sm:flex-row items-stretch sm:items-center gap-3'}`}>
                         {(!caseData.firstResponseAt && slaRule?.responseTimeMinutes) && (
                             <Button
-                                onClick={scrollToChat}
+                                onClick={handleAction}
                                 disabled={isUpdating}
                                 className="w-full sm:w-auto h-11 px-8 bg-[#004E98] hover:bg-[#004E98]/90 text-white font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-tighter text-[11px]"
                             >
@@ -394,7 +404,7 @@ export function CaseWorkspaceContent({ id, onBack, user }: { id: string; onBack?
                         )}
                         <Button
                             variant="outline"
-                            onClick={scrollToChat}
+                            onClick={handleAction}
                             disabled={isUpdating || caseData.status === 'resolved'}
                             className={`w-full sm:w-auto h-11 px-8 font-black rounded-xl shadow-sm transition-all uppercase tracking-tighter text-[11px] border-2 flex items-center justify-center ${caseData.status === 'resolved'
                                 ? "text-emerald-500 border-emerald-500 bg-emerald-50/50 hover:bg-emerald-100/50"

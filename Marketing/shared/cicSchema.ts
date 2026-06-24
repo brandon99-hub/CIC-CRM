@@ -51,6 +51,7 @@ export const cicLeads = pgTable("cic_leads", {
   organisationName: text("organisation_name"), 
   phone: text("phone").notNull(),
   email: text("email"),
+  country: text("country").default("Kenya").notNull(),
   county: text("county"),
   assignedToUserId: uuid("assigned_to_user_id"), 
   stage: text("stage").default("lead").notNull(),
@@ -63,6 +64,7 @@ export const cicLeads = pgTable("cic_leads", {
   gender: text("gender"),
   kraPin: text("kra_pin"),
   physicalAddress: text("physical_address"),
+  residentialAddress: text("residential_address"),
   occupation: text("occupation"),
   employerName: text("employer_name"),
   nextOfKinName: text("next_of_kin_name"),
@@ -81,7 +83,6 @@ export const cicLeads = pgTable("cic_leads", {
   passportPhotoUploadUrl: text("passport_photo_upload_url"),
 
   // ── Entity 3: B2B Prospect (Stage 2) ─────────────────────────────────────────
-  orgType: text("org_type"),                   
   registrationNumber: text("registration_number"),
   kraPinOrg: text("kra_pin_org"),
   physicalAddressOrg: text("physical_address_org"),
@@ -462,6 +463,7 @@ export const cicSimulationLeads = pgTable("cic_simulation_leads", {
   orgType: text("org_type"),
   phone: text("phone"),
   email: text("email"),
+  country: text("country").default("Kenya").notNull(),
   county: text("county"),
   estimatedAnnualPremium: text("estimated_annual_premium"),
   sourceChannel: text("source_channel"),            // from CIC_SOURCE_CHANNELS

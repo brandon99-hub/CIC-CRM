@@ -46,7 +46,7 @@ export function DashboardSidebar({
       className={`${isMobileOpen ? "translate-x-0" : "-translate-x-full"} 
         fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 
         transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 
-        ${collapsed ? "lg:w-16" : "lg:w-60"} w-64 flex flex-col`}
+        ${collapsed ? "lg:w-16" : "lg:w-60"} w-64 flex flex-col h-screen overflow-y-auto custom-scrollbar`}
     >
       <div className="flex flex-col h-full">
         {/* Sidebar header */}

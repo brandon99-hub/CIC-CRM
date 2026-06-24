@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { marketingUsers } from "../../shared/schema";
-import { stakeholders, intakeSignals, cases, caseHistory, caseComments, caseAttachments, stakeholderInteractions, stakeholderRelationships } from "../../shared/crmSchema";
+import { stakeholders, intakeSignals, cases, caseHistory, caseComments, caseAttachments, stakeholderInteractions, stakeholderRelationships, knowledgeBase } from "../../shared/crmSchema";
 import { DiscoveryService } from "./discovery-service";
 import { serviceCategories, systemRoles, slaRules, departments } from "../../shared/adminSchema";
 import { cicLeads } from "../../shared/cicSchema";
@@ -53,13 +53,17 @@ const industries = ["Banking & Finance", "Telecommunications", "Energy", "Manufa
 
 const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randRef = () => `REF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-const randPolicyNum = (product: string) => `CIC/${product.toUpperCase().substring(0, 3)}/${new Date().getFullYear()}/${String(Math.floor(100000 + Math.random() * 899999))}`;
+
+let globalPolicyCounter = 100001;
+const randPolicyNum = (product: string) => `CIC/${product.toUpperCase().substring(0, 3)}/2024/${globalPolicyCounter++}`;
+
 const randAmount = (min = 5000, max = 500000) => Math.floor(min + Math.random() * (max - min));
 const randIraLicense = () => `IRA/AGT/${Math.floor(10000 + Math.random() * 89999)}`;
 
 // ─── Stakeholder Seed Generator ─────────────────────────────────────────────
 
 async function generateStakeholderSeeds(): Promise<any[]> {
+    globalPolicyCounter = 100001; // Reset counter so reseeds generate identical policy numbers
     const seeds: any[] = [];
     const usedEmails = new Set<string>();
 
@@ -83,7 +87,7 @@ async function generateStakeholderSeeds(): Promise<any[]> {
         orgFn: () => string,
         customFields: (i: number) => Record<string, any>
     ) => {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 2; i++) {
             const fn = pick(firstNames);
             const ln = pick(lastNames);
             const product = pick(productLines);
@@ -124,13 +128,65 @@ async function generateStakeholderSeeds(): Promise<any[]> {
             policyNumber: policyNum,
             policyRenewalDate: renewalDate.toISOString().split("T")[0],
             claimsHistory: [
-                { claimId: `CLM-${randRef()}`, type: "Accident", status: "Settled", amount: randAmount(30000, 300000), date: "2024-03-15" }
+                {
+                    claimId: `ICN-${randRef()}`, type: "Accident", motorClaimType: "Own Damage",
+                    incidentDescription: "Rear-ended at traffic lights on Mombasa Rd near Mlolongo",
+                    status: "Settled", amount: randAmount(30000, 300000), approvedAmount: 250000, paidAmount: 250000, excessAmount: 10000, excessPaid: 10000,
+                    assessorName: "J. Kimani", policyNumber: policyNum, date: "2024-03-15",
+                    timeOfAccident: "14:30", dateIntimationAgency: "2024-03-16", dateIntimationInsurer: "2024-03-17",
+                    dateSettledRejected: "2024-04-10", dateAssessorAppointed: "2024-03-18", dateRepairAuthorised: "2024-03-25",
+                    placeOfOccurrence: "Mombasa Road, Mlolongo", policeStation: "Mlolongo Police Station",
+                    injuries: "None reported", repairer: "CHECK-IN Motors", garage: "CHECK-IN Garage Nairobi",
+                    driverName: "Daniel Oluoch", vehicleReg: `KCA ${Math.floor(100 + Math.random() * 900)}T`,
+                    vehicleMake: "Toyota", vehicleModel: "Axio", yearOfManufacture: 2019, engineCC: 1500,
+                    financialInterest: "", cashInLieu: false, writeOff: false,
+                    remarks: "Claim settled. Police abstract obtained. No injuries.",
+                    recoveringFrom: "Third Party Driver — KBZ 447A",
+                    dvIssued: true, dvIssueDate: "2024-04-08", dvReturnDate: "2024-04-10",
+                    fullySettled: true, rejectedByAgency: false, rejectedByInsurer: false,
+                    insuranceClaimRefNo: `INS-REF-${randRef()}`
+                },
+                {
+                    claimId: `ICN-${randRef()}`, type: "Windscreen", motorClaimType: "Windscreen",
+                    incidentDescription: "Stone chip from lorry shattered windscreen on Nakuru highway",
+                    status: "Paid", amount: randAmount(15000, 25000), approvedAmount: 18000, paidAmount: 18000, excessAmount: 0, excessPaid: 0,
+                    assessorName: "Internal Auto-Approve", policyNumber: policyNum, date: "2023-11-10",
+                    timeOfAccident: "09:15", dateIntimationAgency: "2023-11-10", dateIntimationInsurer: "2023-11-11",
+                    dateSettledRejected: "2023-11-25",
+                    placeOfOccurrence: "Nakuru Highway, near Gilgil", policeStation: "N/A",
+                    injuries: "None", repairer: "Spedag Motors", garage: "Spedag Glass Nairobi",
+                    driverName: "", vehicleReg: `KCA ${Math.floor(100 + Math.random() * 900)}T`,
+                    vehicleMake: "Toyota", vehicleModel: "Axio", yearOfManufacture: 2019, engineCC: 1500,
+                    cashInLieu: false, writeOff: false,
+                    remarks: "Windscreen replacement authorised and completed.",
+                    recoveringFrom: "", dvIssued: true, dvIssueDate: "2023-11-24", dvReturnDate: "2023-11-25",
+                    fullySettled: true, rejectedByAgency: false, rejectedByInsurer: false,
+                    insuranceClaimRefNo: `INS-REF-${randRef()}`
+                }
             ],
             policyHistory: [
-                { policyNumber: policyNum, product: "Motor Comprehensive", startDate: "2024-01-01", endDate: renewalDate.toISOString().split("T")[0], status: "Active" }
+                {
+                    policyNumber: policyNum, product: "Motor Comprehensive", coverType: "Comprehensive",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "Motor Private Comprehensive",
+                    startDate: "2024-01-01", endDate: renewalDate.toISOString().split("T")[0],
+                    renewalDate: renewalDate.toISOString().split("T")[0],
+                    status: "Active", annualPremiumKes: randAmount(40000, 80000), sumInsuredKes: randAmount(800000, 3000000),
+                    paymentStatus: "Paid", outstandingPremium: 0, intermediaryName: "Direct", intermediaryType: "Direct",
+                    modeOfPayment: "M-PESA"
+                },
+                {
+                    policyNumber: `${policyNum}-PREV`, product: "Motor Comprehensive", coverType: "Comprehensive",
+                    businessType: "New Business", insurerName: "CIC Insurance Group", productName: "Motor Private Comprehensive",
+                    startDate: "2023-01-01", endDate: "2024-01-01", renewalDate: "2024-01-01",
+                    status: "Expired", annualPremiumKes: 45000, sumInsuredKes: randAmount(700000, 2500000),
+                    paymentStatus: "Paid", outstandingPremium: 0, intermediaryName: "Direct", intermediaryType: "Direct",
+                    modeOfPayment: "M-PESA"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(8000, 25000), date: "2024-01-05", method: "M-PESA", reference: randRef() }
+                { amount: randAmount(8000, 25000), date: "2024-01-05", method: "M-PESA", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: "Annual Motor Comprehensive Premium", periodFrom: "2024-01-01", periodTo: "2025-01-01", isPartial: false },
+                { amount: randAmount(8000, 25000), date: "2023-01-05", method: "M-PESA", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: "Annual Motor Comprehensive Premium", periodFrom: "2023-01-01", periodTo: "2024-01-01", isPartial: false },
+                { amount: randAmount(8000, 25000), date: "2022-01-05", method: "M-PESA", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: `${policyNum}-PREV`, status: "Paid", description: "Annual Motor Comprehensive Premium", periodFrom: "2022-01-01", periodTo: "2023-01-01", isPartial: false }
             ]
         };
     });
@@ -145,13 +201,65 @@ async function generateStakeholderSeeds(): Promise<any[]> {
             productLine: product,
             policyNumber: policyNum,
             policyRenewalDate: renewalDate.toISOString().split("T")[0],
-            claimsHistory: [],
+            claimsHistory: [
+                {
+                    claimId: `ICN-${randRef()}`, type: "Outpatient", motorClaimType: null,
+                    incidentDescription: "Routine outpatient consultation and pharmacy — Aga Khan Hospital",
+                    status: "Paid", amount: randAmount(2000, 8000), approvedAmount: 5000, paidAmount: 5000, excessAmount: 0, excessPaid: 0,
+                    assessorName: "Auto-Approve", policyNumber: policyNum, date: "2024-02-20",
+                    timeOfAccident: null, dateIntimationAgency: "2024-02-20", dateIntimationInsurer: "2024-02-21",
+                    dateSettledRejected: "2024-02-25",
+                    placeOfOccurrence: "Aga Khan University Hospital, Nairobi", policeStation: "N/A",
+                    injuries: "N/A — Medical claim", repairer: "N/A", garage: "N/A", driverName: "N/A",
+                    cashInLieu: false, writeOff: false,
+                    remarks: "Approved automatically within system limits.",
+                    recoveringFrom: "", dvIssued: true, dvIssueDate: "2024-02-24", dvReturnDate: "2024-02-25",
+                    fullySettled: true, rejectedByAgency: false, rejectedByInsurer: false,
+                    occupation: "Healthcare Worker", insuranceClaimRefNo: `INS-REF-${randRef()}`
+                },
+                {
+                    claimId: `ICN-${randRef()}`, type: "Inpatient", motorClaimType: null,
+                    incidentDescription: "Emergency surgery admission — Appendectomy at MP Shah Hospital",
+                    status: "Under Assessment", amount: randAmount(50000, 150000), approvedAmount: 0, paidAmount: 0, excessAmount: 5000, excessPaid: 0,
+                    assessorName: "Dr. Mwangi", policyNumber: policyNum, date: "2024-05-10",
+                    timeOfAccident: null, dateIntimationAgency: "2024-05-10", dateIntimationInsurer: "2024-05-11",
+                    dateSettledRejected: null,
+                    placeOfOccurrence: "MP Shah Hospital, Nairobi", policeStation: "N/A",
+                    injuries: "Surgical intervention required", repairer: "N/A", garage: "N/A", driverName: "N/A",
+                    cashInLieu: false, writeOff: false,
+                    remarks: "Awaiting final discharge summary from hospital.",
+                    recoveringFrom: "", dvIssued: false, dvIssueDate: null, dvReturnDate: null,
+                    fullySettled: false, rejectedByAgency: false, rejectedByInsurer: false,
+                    occupation: "Healthcare Worker", insuranceClaimRefNo: `INS-REF-${randRef()}`
+                }
+            ],
             policyHistory: [
-                { policyNumber: policyNum, product: product === "life" ? "Whole Life Assurance" : "Individual Medical Cover", startDate: "2023-06-01", endDate: renewalDate.toISOString().split("T")[0], status: "Active" }
+                {
+                    policyNumber: policyNum,
+                    product: product === "life" ? "Whole Life Assurance" : "Individual Medical Cover",
+                    coverType: product === "life" ? "Whole Life" : "Individual Inpatient & Outpatient",
+                    businessType: "New Business", insurerName: "CIC Insurance Group",
+                    productName: product === "life" ? "CIC Whole Life Assurance" : "CIC Linda Jamii Medical",
+                    startDate: "2023-06-01", endDate: renewalDate.toISOString().split("T")[0],
+                    renewalDate: renewalDate.toISOString().split("T")[0],
+                    status: "Active", annualPremiumKes: randAmount(50000, 150000), sumInsuredKes: randAmount(500000, 5000000),
+                    paymentStatus: randAmount(0, 1) > 0 ? "Paid" : "Partial", outstandingPremium: randAmount(0, 15000),
+                    intermediaryName: "Direct", intermediaryType: "Direct", modeOfPayment: "Standing Order"
+                },
+                {
+                    policyNumber: randPolicyNum("life"), product: "Education Plan", coverType: "Endowment",
+                    businessType: "New Business", insurerName: "CIC Insurance Group", productName: "CIC Elimu Plan",
+                    startDate: "2022-01-01", endDate: "2032-01-01", renewalDate: null,
+                    status: "Active", annualPremiumKes: 120000, sumInsuredKes: randAmount(1000000, 3000000),
+                    paymentStatus: "Paid", outstandingPremium: 0,
+                    intermediaryName: "Direct", intermediaryType: "Direct", modeOfPayment: "Standing Order"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(3000, 15000), date: "2024-01-01", method: "Standing Order", reference: randRef() },
-                { amount: randAmount(3000, 15000), date: "2024-02-01", method: "Standing Order", reference: randRef() }
+                { amount: randAmount(3000, 15000), date: "2024-01-01", method: "Standing Order", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: `Monthly ${product === 'life' ? 'Life Assurance' : 'Medical Cover'} Premium`, periodFrom: "2024-01-01", periodTo: "2024-01-31", isPartial: false },
+                { amount: randAmount(3000, 15000), date: "2024-02-01", method: "Standing Order", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: `Monthly ${product === 'life' ? 'Life Assurance' : 'Medical Cover'} Premium`, periodFrom: "2024-02-01", periodTo: "2024-02-29", isPartial: false },
+                { amount: randAmount(3000, 15000), date: "2024-03-01", method: "Standing Order", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: `Monthly ${product === 'life' ? 'Life Assurance' : 'Medical Cover'} Premium`, periodFrom: "2024-03-01", periodTo: "2024-03-31", isPartial: false },
+                { amount: randAmount(3000, 15000), date: "2024-04-01", method: "Standing Order", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Partial", description: `Monthly ${product === 'life' ? 'Life Assurance' : 'Medical Cover'} Premium — Partial`, periodFrom: "2024-04-01", periodTo: "2024-04-30", isPartial: true }
             ]
         };
     });
@@ -170,13 +278,35 @@ async function generateStakeholderSeeds(): Promise<any[]> {
                 annual_premium: randAmount(200000, 5000000)
             },
             claimsHistory: [
-                { claimId: `CLM-${randRef()}`, type: "Group Medical Claim", status: "Paid", amount: randAmount(150000, 800000), date: "2024-04-10" }
+                {
+                    claimId: `ICN-${randRef()}`, type: "Group Medical Claim", motorClaimType: null,
+                    incidentDescription: "Q1 outpatient pool utilization — high claimants in Nairobi region",
+                    status: "Paid", amount: randAmount(150000, 800000), approvedAmount: 400000, paidAmount: 400000, excessAmount: 0, excessPaid: 0,
+                    assessorName: "Corporate Medical Desk", policyNumber: randPolicyNum("group_life"), date: "2024-04-10",
+                    timeOfAccident: null, dateIntimationAgency: "2024-04-08", dateIntimationInsurer: "2024-04-09",
+                    dateSettledRejected: "2024-04-20",
+                    placeOfOccurrence: "Various — Nairobi County", policeStation: "N/A",
+                    injuries: "N/A — Medical scheme", repairer: "N/A", garage: "N/A", driverName: "N/A",
+                    cashInLieu: false, writeOff: false,
+                    remarks: "Quarterly pool settled within approved limits.",
+                    recoveringFrom: "", dvIssued: true, dvIssueDate: "2024-04-19", dvReturnDate: "2024-04-20",
+                    fullySettled: true, rejectedByAgency: false, rejectedByInsurer: false,
+                    insuranceClaimRefNo: `INS-REF-${randRef()}`
+                }
             ],
             policyHistory: [
-                { policyNumber: randPolicyNum("group_life"), product: "Group Credit Life", startDate: "2023-01-01", endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "Active" }
+                {
+                    policyNumber: randPolicyNum("group_life"), product: "Group Credit Life", coverType: "Group Credit Life",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "CIC CoopCare Group Credit Life",
+                    startDate: "2023-01-01", endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                    renewalDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                    status: "Active", annualPremiumKes: randAmount(1000000, 5000000), sumInsuredKes: randAmount(50000000, 200000000),
+                    paymentStatus: "Paid", outstandingPremium: 0,
+                    intermediaryName: "Minet Kenya", intermediaryType: "Broker", modeOfPayment: "Bank Transfer"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(500000, 2000000), date: "2024-01-15", method: "Bank Transfer", reference: randRef() }
+                { amount: randAmount(500000, 2000000), date: "2024-01-15", method: "Bank Transfer", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: randPolicyNum("group_life"), status: "Paid", description: "Annual Group Credit Life Scheme Premium", periodFrom: "2024-01-01", periodTo: "2025-01-01", isPartial: false }
             ]
         };
     });
@@ -194,13 +324,35 @@ async function generateStakeholderSeeds(): Promise<any[]> {
                 relationship_manager: `${pick(firstNames)} ${pick(lastNames)}`
             },
             claimsHistory: [
-                { claimId: `CLM-${randRef()}`, type: "Employee Medical", status: "Under Assessment", amount: randAmount(500000, 2000000), date: "2024-05-20" }
+                {
+                    claimId: `ICN-${randRef()}`, type: "Employee Medical — High Utilization", motorClaimType: null,
+                    incidentDescription: "Elevated claims frequency for chronic disease management among staff",
+                    status: "Under Assessment", amount: randAmount(500000, 2000000), approvedAmount: 0, paidAmount: 0, excessAmount: 0, excessPaid: 0,
+                    assessorName: "Dr. Omondi — Corporate Desk", policyNumber: randPolicyNum("medical"), date: "2024-05-20",
+                    timeOfAccident: null, dateIntimationAgency: "2024-05-19", dateIntimationInsurer: "2024-05-20",
+                    dateSettledRejected: null,
+                    placeOfOccurrence: "Multiple — Corporate Scheme", policeStation: "N/A",
+                    injuries: "N/A — Medical scheme", repairer: "N/A", garage: "N/A", driverName: "N/A",
+                    cashInLieu: false, writeOff: false,
+                    remarks: "Pending full assessment and claims audit.",
+                    recoveringFrom: "", dvIssued: false, dvIssueDate: null, dvReturnDate: null,
+                    fullySettled: false, rejectedByAgency: false, rejectedByInsurer: false,
+                    insuranceClaimRefNo: `INS-REF-${randRef()}`
+                }
             ],
             policyHistory: [
-                { policyNumber: randPolicyNum("medical"), product: "Corporate Group Medical", startDate: "2022-07-01", endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "Active" }
+                {
+                    policyNumber: randPolicyNum("medical"), product: "Corporate Group Medical", coverType: "Group Medical Inpatient & Outpatient",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "CIC Corporate Medical Scheme",
+                    startDate: "2022-07-01", endDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                    renewalDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                    status: "Active", annualPremiumKes: randAmount(2000000, 10000000), sumInsuredKes: randAmount(50000000, 500000000),
+                    paymentStatus: randAmount(0, 1) > 0 ? "Paid" : "Partial", outstandingPremium: randAmount(0, 500000),
+                    intermediaryName: "AON Kenya", intermediaryType: "Broker", modeOfPayment: "RTGS"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(1000000, 5000000), date: "2024-02-10", method: "RTGS", reference: randRef() }
+                { amount: randAmount(1000000, 5000000), date: "2024-02-10", method: "RTGS", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: randPolicyNum("medical"), status: "Paid", description: "Annual Corporate Group Medical Scheme Premium", periodFrom: "2024-07-01", periodTo: "2025-07-01", isPartial: false }
             ]
         };
     });
@@ -220,10 +372,17 @@ async function generateStakeholderSeeds(): Promise<any[]> {
             },
             claimsHistory: [],
             policyHistory: [
-                { policyNumber: policyNum, product: "Professional Indemnity", startDate: "2024-01-01", endDate: "2025-01-01", status: "Active" }
+                {
+                    policyNumber: policyNum, product: "Professional Indemnity", coverType: "Professional Indemnity",
+                    businessType: "New Business", insurerName: "CIC Insurance Group", productName: "CIC Agent PI Cover",
+                    startDate: "2024-01-01", endDate: "2025-01-01", renewalDate: "2025-01-01",
+                    status: "Active", annualPremiumKes: randAmount(15000, 45000), sumInsuredKes: randAmount(2000000, 10000000),
+                    paymentStatus: "Paid", outstandingPremium: 0,
+                    intermediaryName: "Direct", intermediaryType: "Direct", modeOfPayment: "M-PESA"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(15000, 45000), date: "2024-01-05", method: "M-PESA", reference: randRef() }
+                { amount: randAmount(15000, 45000), date: "2024-01-05", method: "M-PESA", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: policyNum, status: "Paid", description: "Annual Professional Indemnity Premium", periodFrom: "2024-01-01", periodTo: "2025-01-01", isPartial: false }
             ]
         };
     });
@@ -242,10 +401,17 @@ async function generateStakeholderSeeds(): Promise<any[]> {
             },
             claimsHistory: [],
             policyHistory: [
-                { policyNumber: randPolicyNum("property"), product: "Brokerage Professional Indemnity", startDate: "2023-05-01", endDate: "2024-05-01", status: "Active" }
+                {
+                    policyNumber: randPolicyNum("property"), product: "Brokerage Professional Indemnity", coverType: "Professional Indemnity",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "CIC Broker PI Cover",
+                    startDate: "2023-05-01", endDate: "2024-05-01", renewalDate: "2024-05-01",
+                    status: "Active", annualPremiumKes: randAmount(250000, 750000), sumInsuredKes: randAmount(20000000, 100000000),
+                    paymentStatus: randAmount(0, 1) > 0 ? "Paid" : "Partial", outstandingPremium: randAmount(0, 50000),
+                    intermediaryName: "Direct", intermediaryType: "Direct", modeOfPayment: "Bank Transfer"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(250000, 750000), date: "2023-05-15", method: "Bank Transfer", reference: randRef() }
+                { amount: randAmount(250000, 750000), date: "2023-05-15", method: "Bank Transfer", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: randPolicyNum("property"), status: "Paid", description: "Annual Brokerage PI Cover Premium", periodFrom: "2023-05-01", periodTo: "2024-05-01", isPartial: false }
             ]
         };
     });
@@ -265,11 +431,25 @@ async function generateStakeholderSeeds(): Promise<any[]> {
             },
             claimsHistory: [],
             policyHistory: [
-                { policyNumber: randPolicyNum("property"), product: "Bankers Blanket Bond", startDate: "2023-11-01", endDate: "2024-11-01", status: "Active" },
-                { policyNumber: randPolicyNum("life"), product: "Creditor Life Scheme", startDate: "2023-11-01", endDate: "2024-11-01", status: "Active" }
+                {
+                    policyNumber: randPolicyNum("property"), product: "Bankers Blanket Bond", coverType: "Fidelity & Financial Crime",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "CIC Bankers Blanket Bond",
+                    startDate: "2023-11-01", endDate: "2024-11-01", renewalDate: "2024-11-01",
+                    status: "Active", annualPremiumKes: randAmount(5000000, 15000000), sumInsuredKes: randAmount(500000000, 2000000000),
+                    paymentStatus: "Paid", outstandingPremium: 0,
+                    intermediaryName: "Direct", intermediaryType: "Bancassurance", modeOfPayment: "Internal Transfer"
+                },
+                {
+                    policyNumber: randPolicyNum("life"), product: "Creditor Life Scheme", coverType: "Group Credit Life",
+                    businessType: "Renewal", insurerName: "CIC Insurance Group", productName: "CIC Creditor Life",
+                    startDate: "2023-11-01", endDate: "2024-11-01", renewalDate: "2024-11-01",
+                    status: "Active", annualPremiumKes: randAmount(10000000, 30000000), sumInsuredKes: randAmount(1000000000, 5000000000),
+                    paymentStatus: "Paid", outstandingPremium: 0,
+                    intermediaryName: "Direct", intermediaryType: "Bancassurance", modeOfPayment: "Internal Transfer"
+                }
             ],
             premiumPaymentHistory: [
-                { amount: randAmount(5000000, 15000000), date: "2023-11-10", method: "Internal Transfer", reference: randRef() }
+                { amount: randAmount(5000000, 15000000), date: "2023-11-10", method: "Internal Transfer", reference: randRef(), receiptNumber: `RCT-${randRef()}`, policyNumber: randPolicyNum("property"), status: "Paid", description: "Annual Bankers Blanket Bond Premium", periodFrom: "2023-11-01", periodTo: "2024-11-01", isPartial: false }
             ]
         };
     });
@@ -598,7 +778,19 @@ export const SimulationService = {
                         email: signal.metadata?.email || "TBD",
                         stage: signal.metadata?.stage_hint || "lead",
                         referredByStakeholderId: finalStakeholderId || null,
-                        county: signal.metadata?.county || null
+                        country: signal.metadata?.country || "Kenya",
+                        county: signal.metadata?.county || null,
+                        nationalIdNumber: signal.metadata?.nationalIdNumber || null,
+                        kraPin: signal.metadata?.kraPin || null,
+                        occupation: signal.metadata?.occupation || null,
+                        coverType: signal.metadata?.coverType || null,
+                        sumInsuredConfirmedKes: signal.metadata?.sumInsuredConfirmedKes || null,
+                        quotedPremiumKes: signal.metadata?.quotedPremiumKes || null,
+                        underwritingDecision: signal.metadata?.underwritingDecision || null,
+                        orgType: signal.metadata?.orgType || null,
+                        totalMemberCount: signal.metadata?.totalMemberCount || null,
+                        sectorIndustry: signal.metadata?.sectorIndustry || null,
+                        estimatedAnnualPremium: signal.metadata?.estimatedAnnualPremium || null
                     } as any);
 
                     await db.update(intakeSignals).set({
@@ -788,8 +980,56 @@ export const SimulationService = {
             results.push(await this.triggerScenario(scenario));
         }
 
+        // Seed 3 Knowledge Base Templates
+        const cats = await db.select().from(serviceCategories).limit(3);
+        if (cats.length >= 3) {
+            const templatesData = [
+                {
+                    title: "Standard Motor Claim Procedure",
+                    category: "template",
+                    isTemplate: true,
+                    serviceCategoryId: cats[0].id,
+                    rootCause: "Driver Error / Accident",
+                    resolutionSummary: "Claim assessed and processed according to motor policy.",
+                    sopSteps: ["Verify driver license and police abstract", "Assess vehicle damage", "Approve repair estimate", "Issue release letter"],
+                    isPublished: true,
+                    content: "This template covers the standard procedure for handling motor claims."
+                },
+                {
+                    title: "General Health Pre-Auth",
+                    category: "template",
+                    isTemplate: true,
+                    serviceCategoryId: cats[1].id,
+                    rootCause: "Medical Necessity / Illness",
+                    resolutionSummary: "Pre-auth approved based on inpatient policy limits.",
+                    sopSteps: ["Verify member eligibility", "Review medical report and diagnosis", "Confirm hospital panel status", "Issue pre-auth letter"],
+                    isPublished: true,
+                    content: "Template for handling standard health pre-authorizations."
+                },
+                {
+                    title: "Pension Payout Process",
+                    category: "template",
+                    isTemplate: true,
+                    serviceCategoryId: cats[2].id,
+                    rootCause: "Retirement / Separation",
+                    resolutionSummary: "Pension funds disbursed to the verified member account.",
+                    sopSteps: ["Verify member identity and separation letter", "Calculate accrued benefits", "Obtain RBA approval if necessary", "Process payment via finance"],
+                    isPublished: true,
+                    content: "Guidelines for processing member pension payouts."
+                }
+            ];
+
+            // Check if they already exist
+            for (const tmpl of templatesData) {
+                const existingTmpl = await db.select().from(knowledgeBase).where(eq(knowledgeBase.title, tmpl.title)).limit(1);
+                if (existingTmpl.length === 0) {
+                    await db.insert(knowledgeBase).values(tmpl as any);
+                }
+            }
+        }
+
         return {
-            message: "CIC Insurance system reset and reseeded with 35 stakeholders and 20 cases.",
+            message: "CIC Insurance system reset and reseeded with 35 stakeholders, 20 cases, and 3 knowledge templates.",
             casesCreated: results.length
         };
     }

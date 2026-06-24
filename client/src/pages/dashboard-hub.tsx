@@ -41,7 +41,7 @@ const GET_ALL_DASHBOARDS = (t: any): DashboardOption[] => [
   },
   {
     id: "marketing",
-    label: t("marketing.title", "Marketing & Engagement"),
+    label: t("marketing.title", "Sales & Marketing"),
     description: t("marketing.desc", "Sales pipeline, campaigns, surveys, and sector analytics"),
     icon: TrendingUp,
     path: "/marketing/dashboard",
@@ -51,7 +51,7 @@ const GET_ALL_DASHBOARDS = (t: any): DashboardOption[] => [
   {
     id: "communications",
     label: t("communications.title", "Communications Hub"),
-    description: t("communications.desc", "Unified inbox, social publisher, and Avaya call monitor"),
+    description: t("communications.desc", "Manage omnichannel conversations, social publishing, and Avaya voice integrations"),
     icon: MessageSquare,
     path: "/communications/dashboard",
     color: "#0284C7",

@@ -88,70 +88,6 @@ function unwrapCampaignContent(html: string): string {
     .trim();
 }
 
-const MarketingDashboardHeader = ({
-  userName, stats, adminStats, isAdmin
-}: {
-  userName?: string;
-  stats?: DashboardStats | null;
-  adminStats?: AdminDashboardStats | null;
-  isAdmin: boolean;
-}) => {
-  const [greeting, setGreeting] = useState("Hello");
-  useEffect(() => { setGreeting(getGreeting()); }, []);
-
-  const prospects = isAdmin ? (adminStats?.totalProspectsCount || 0) : (stats?.prospectsCount || 0);
-  const leads = isAdmin ? (adminStats?.totalLeadsCount || 0) : (stats?.leadsCount || 0);
-  const salesWon = isAdmin ? (adminStats?.totalSalesWonCount || 0) : (stats?.salesWonCount || 0);
-
-  const mktStats = [
-    {
-      label: "Pipeline Activity",
-      value: `${prospects} Prospects`,
-      description: isAdmin
-        ? `${prospects} total prospects across the entire marketing team's active pipeline.`
-        : `${prospects} prospects currently in your active marketing pipeline.`,
-      color: "text-blue-600"
-    },
-    {
-      label: "Leads Generated",
-      value: `${leads} Leads`,
-      description: isAdmin
-        ? `${leads} qualified leads being managed across the full team.`
-        : `${leads} qualified leads currently in your active follow-up queue.`,
-      color: "text-emerald-600"
-    },
-    {
-      label: "Sales Won",
-      value: `${salesWon} Closed`,
-      description: isAdmin
-        ? `${salesWon} total successful sales closed by the full marketing team this year.`
-        : `${salesWon} successful sales you have closed and confirmed this year.`,
-      color: "text-[#004E98]"
-    },
-  ];
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-8">
-      <div className="p-4 md:p-8 flex flex-col xl:flex-row xl:items-center justify-between gap-4 md:gap-8 relative">
-        <div className="space-y-3 relative z-10 pl-2 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em]">
-              {new Date().toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "Africa/Nairobi" })}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight">
-            {greeting}, <span className="text-[#004E98]">{userName || "Marketer"}</span>
-          </h1>
-        </div>
-        <div className="w-full xl:w-[420px] relative z-10">
-          <StatsCarousel stats={mktStats} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketingDashboard() {
@@ -168,7 +104,7 @@ export default function MarketingDashboard() {
       return "overview";
     }
   });
-  const [prospectSubTab, setProspectSubTab] = useState<"students" | "business">("students");
+  const [prospectSubTab, setProspectSubTab] = useState<"B2C" | "B2B">("B2C");
   const [wonSubTab, setWonSubTab] = useState<"converted" | "sales-won">("converted");
   const [selectedMarketer, setSelectedMarketer] = useState("");
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
@@ -665,7 +601,7 @@ export default function MarketingDashboard() {
           </div>
         )}
 
-        {/* Removed redundant MarketingDashboardHeader as requested */}
+
         {activeSection === "overview" && user && (
           <MarketingOverview
             user={user as MarketingUser}

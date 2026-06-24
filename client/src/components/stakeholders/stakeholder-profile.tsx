@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     ChevronLeft, Mail, Phone, Building, MessageSquare, Link2, Activity,
     Calendar, Clock, Plus, PlusCircle, HelpCircle, GraduationCap, Briefcase, UserCheck, FileEdit, UserCog,
@@ -131,6 +132,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
     const [editData, setEditData] = useState<Partial<Stakeholder>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+    const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
 
     if (isLoading) {
         return (
@@ -247,7 +249,13 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
             preferredLanguage: s.preferredLanguage,
             communicationFrequency: s.communicationFrequency,
             socialProfiles: s.socialProfiles || {},
-            organization: s.organization
+            organization: s.organization,
+            nationalId: (s as any).nationalId || '',
+            kraPin: (s as any).kraPin || '',
+            address: (s as any).address || '',
+            dateOfBirth: (s as any).dateOfBirth || '',
+            gender: (s as any).gender || '',
+            consentGiven: (s as any).consentGiven ?? false,
         });
         setOpenAccordions(["comm-details", "social-details"]);
         setIsEditing(true);
@@ -483,31 +491,134 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <AccordionTrigger className="hover:no-underline py-4">
                                     <div className="flex items-center gap-2">
                                         <MessageSquare className="h-4 w-4 text-gray-400" />
-                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Communication Intelligence</span>
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Identity & Communication</span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="grid grid-cols-2 gap-6 pt-2">
+
+                                        {/* National ID */}
                                         <div className="space-y-2">
-                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Preferred Channel</Label>
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">National ID</Label>
                                             {isEditing ? (
-                                                <Select value={editData.preferredChannel} onValueChange={(v) => updateEditField("preferredChannel", v)}>
-                                                    <SelectTrigger className="h-9 border-gray-200 rounded-lg text-xs font-bold">
-                                                        <SelectValue />
+                                                <Input
+                                                    value={(editData as any).nationalId || ""}
+                                                    onChange={(e) => updateEditField("nationalId" as any, e.target.value)}
+                                                    className="h-8 text-xs font-bold border-gray-200 rounded-lg"
+                                                    placeholder="e.g. 12345678"
+                                                />
+                                            ) : (
+                                                <p className="text-xs font-bold text-gray-700 font-mono">
+                                                    {(s as any).nationalId ? `****${String((s as any).nationalId).slice(-4)}` : "—"}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* KRA PIN */}
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">KRA PIN</Label>
+                                            {isEditing ? (
+                                                <Input
+                                                    value={(editData as any).kraPin || ""}
+                                                    onChange={(e) => updateEditField("kraPin" as any, e.target.value)}
+                                                    className="h-8 text-xs font-bold border-gray-200 rounded-lg"
+                                                    placeholder="e.g. A001234567Z"
+                                                />
+                                            ) : (
+                                                <p className="text-xs font-bold text-gray-700 font-mono">{(s as any).kraPin || "—"}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Date of Birth */}
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Date of Birth</Label>
+                                            {isEditing ? (
+                                                <Input
+                                                    type="date"
+                                                    value={(editData as any).dateOfBirth || ""}
+                                                    onChange={(e) => updateEditField("dateOfBirth" as any, e.target.value)}
+                                                    className="h-8 text-xs font-bold border-gray-200 rounded-lg"
+                                                />
+                                            ) : (
+                                                <p className="text-xs font-bold text-gray-700">
+                                                    {(s as any).dateOfBirth ? new Date((s as any).dateOfBirth).toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" }) : "—"}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Gender */}
+                                        <div className="space-y-2">
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Gender</Label>
+                                            {isEditing ? (
+                                                <Select value={(editData as any).gender || ""} onValueChange={(v) => updateEditField("gender" as any, v)}>
+                                                    <SelectTrigger className="h-8 text-xs font-bold border-gray-200 rounded-lg">
+                                                        <SelectValue placeholder="Select gender" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="email">Email</SelectItem>
-                                                        <SelectItem value="phone">Phone / Call</SelectItem>
-                                                        <SelectItem value="sms">SMS</SelectItem>
-                                                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                                                        <SelectItem value="portal">Client Portal</SelectItem>
-                                                        <SelectItem value="walk_in">Branch / Walk-in</SelectItem>
+                                                        <SelectItem value="male">Male</SelectItem>
+                                                        <SelectItem value="female">Female</SelectItem>
+                                                        <SelectItem value="other">Other</SelectItem>
+                                                        <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             ) : (
-                                                <p className="text-xs font-bold text-gray-700 capitalize">{s.preferredChannel || "Email"}</p>
+                                                <p className="text-xs font-bold text-gray-700 capitalize">{(s as any).gender || "—"}</p>
                                             )}
                                         </div>
+
+                                        {/* Residential Address — full width */}
+                                        <div className="space-y-2 col-span-2">
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Residential Address</Label>
+                                            {isEditing ? (
+                                                <Input
+                                                    value={(editData as any).address || ""}
+                                                    onChange={(e) => updateEditField("address" as any, e.target.value)}
+                                                    className="h-8 text-xs font-bold border-gray-200 rounded-lg"
+                                                    placeholder="Estate / Building, Street, Area"
+                                                />
+                                            ) : (
+                                                <p className="text-xs font-bold text-gray-700">{(s as any).address || "—"}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Preferred Channels — multi-select badges */}
+                                        <div className="space-y-2 col-span-2">
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Preferred Channels</Label>
+                                            {isEditing ? (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {["email", "phone", "sms", "whatsapp", "portal", "walk_in"].map((ch) => {
+                                                        const current: string[] = Array.isArray(editData.preferredChannel)
+                                                            ? (editData.preferredChannel as string[])
+                                                            : editData.preferredChannel ? [editData.preferredChannel as string] : [];
+                                                        const isSelected = current.includes(ch);
+                                                        return (
+                                                            <button
+                                                                key={ch}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const next = isSelected
+                                                                        ? current.filter((c) => c !== ch)
+                                                                        : [...current, ch];
+                                                                    updateEditField("preferredChannel", next);
+                                                                }}
+                                                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-colors ${isSelected ? "bg-[#004E98] text-white border-[#004E98]" : "bg-gray-50 text-gray-500 border-gray-200 hover:border-[#004E98]/40"}`}
+                                                            >
+                                                                {ch.replace("_", " ")}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(Array.isArray(s.preferredChannel) ? s.preferredChannel : s.preferredChannel ? [s.preferredChannel] : []).map((ch: string) => (
+                                                        <span key={ch} className="px-2 py-0.5 rounded-full bg-[#004E98]/10 text-[#004E98] text-[10px] font-black uppercase tracking-wider">{ch.replace("_", " ")}</span>
+                                                    ))}
+                                                    {!s.preferredChannel && <span className="text-xs font-bold text-gray-500">Email</span>}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Preferred Language */}
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Preferred Language</Label>
                                             {isEditing ? (
@@ -526,9 +637,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                             )}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                {s.type === 'staff' ? "Department" : "Organization/Institution"}
-                                            </Label>
+                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Organization</Label>
                                             {isEditing ? (
                                                 <Select value={editData.organization || "none"} onValueChange={(v) => updateEditField("organization", v === "none" ? "" : v)}>
                                                     <SelectTrigger className="h-9 text-xs font-bold border-gray-200 rounded-lg bg-gray-100/30">
@@ -545,16 +654,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                                 <p className="text-xs font-bold text-[#004E98] hover:underline cursor-pointer">{s.organization || "Independent"}</p>
                                             )}
                                         </div>
-                                        {(s.type === 'corporate_client' || s.type === 'sacco_cooperative' || s.type === 'bancassurance_partner' || s.type === 'agent' || s.type === 'broker') && (
-                                            <div className="space-y-2">
-                                                <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Specific Contact</Label>
-                                                <p className="text-xs font-bold text-gray-700 capitalize">{s.name || "Unassigned"}</p>
-                                            </div>
-                                        )}
-                                        <div className="space-y-2">
-                                            <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Log Frequency</Label>
-                                            <p className="text-xs font-bold text-gray-500 uppercase">{s.communicationFrequency || "As Needed"}</p>
-                                        </div>
+
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
@@ -624,7 +724,7 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                         <AccordionTrigger className="hover:no-underline py-4">
                                             <div className="flex items-center gap-2">
                                                 <Activity className="h-4 w-4 text-gray-400" />
-                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Social Media Integration</span>
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Social Media</span>
                                             </div>
                                         </AccordionTrigger>
                                         <AccordionContent>
@@ -778,6 +878,8 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                             <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Policy No</th>
                                             <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Product</th>
                                             <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Period</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Premium / Sum Insured</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-center">Payment Status</th>
                                             <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Status</th>
                                         </tr>
                                     </thead>
@@ -786,14 +888,29 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                             <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-gray-900">{pol.policyNumber || "N/A"}</p>
+                                                    {pol.insurerName && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{pol.insurerName}</p>}
+                                                    {pol.intermediaryName && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{pol.intermediaryName} ({pol.intermediaryType || "Agent"})</p>}
                                                 </td>
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">{pol.product || "Unknown"}</p>
+                                                    {pol.coverType && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{pol.coverType}</p>}
+                                                    {pol.businessType && <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">{pol.businessType}</p>}
                                                 </td>
                                                 <td className="py-3 px-6">
                                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                                                         {pol.startDate ? new Date(pol.startDate).toLocaleDateString('en-KE') : '—'} - {pol.endDate ? new Date(pol.endDate).toLocaleDateString('en-KE') : '—'}
                                                     </p>
+                                                    {pol.renewalDate && <p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest mt-1">Renews: {new Date(pol.renewalDate).toLocaleDateString('en-KE')}</p>}
+                                                </td>
+                                                <td className="py-3 px-6 text-right">
+                                                    <p className="text-xs font-black text-[#004E98]">{pol.annualPremiumKes ? formatStakeholderCurrency(s.country || "Kenya", pol.annualPremiumKes) : pol.premium ? formatStakeholderCurrency(s.country || "Kenya", pol.premium) : '—'}</p>
+                                                    {pol.sumInsuredKes && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">SI: {formatStakeholderCurrency(s.country || "Kenya", pol.sumInsuredKes)}</p>}
+                                                    {pol.modeOfPayment && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{pol.modeOfPayment}</p>}
+                                                </td>
+                                                <td className="py-3 px-6 text-center">
+                                                    <Badge className={`${pol.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-600' : pol.paymentStatus === 'Partial' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'} border-none uppercase text-[9px] font-black tracking-widest`}>
+                                                        {pol.paymentStatus || "Unpaid"}
+                                                    </Badge>
                                                 </td>
                                                 <td className="py-3 px-6 text-right">
                                                     <Badge className={`${pol.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
@@ -823,29 +940,39 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50/30 border-b border-gray-100">
                                         <tr>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Date</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Claim ID / Type</th>
-                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-center">Amount (KES)</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Date & Incident</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest">Claim ID / Policy</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Claimed (KES)</th>
+                                            <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Approved / Paid</th>
                                             <th className="py-3 px-6 font-black text-gray-400 uppercase text-[10px] tracking-widest text-right">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
                                         {(s.claimsHistory || []).map((claim: any, i: number) => (
-                                            <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                                            <tr key={i} onClick={() => setSelectedClaim(claim)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-gray-900">{claim.date ? new Date(claim.date).toLocaleDateString('en-KE') : "N/A"}</p>
+                                                    {claim.incidentDescription && <p className="text-[9px] font-medium text-gray-500 mt-1 max-w-[200px] truncate">{claim.incidentDescription}</p>}
                                                 </td>
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-[#004E98]">{claim.claimId || "Unknown"}</p>
-                                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{claim.type || "General"}</p>
-                                                </td>
-                                                <td className="py-3 px-6 text-center">
-                                                    <span className="text-xs font-black text-gray-900">{formatStakeholderCurrency(s.country || "Kenya", claim.amount || 0)}</span>
+                                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{claim.motorClaimType || claim.type || "General"}</p>
+                                                    {claim.policyNumber && <p className="text-[9px] font-bold text-gray-400 uppercase mt-1">Pol: {claim.policyNumber}</p>}
                                                 </td>
                                                 <td className="py-3 px-6 text-right">
-                                                    <Badge className={`${claim.status === 'Settled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
+                                                    <span className="text-xs font-black text-gray-900">{formatStakeholderCurrency(s.country || "Kenya", claim.amount || claim.claimedAmount || 0)}</span>
+                                                    {claim.excessAmount && <p className="text-[9px] font-bold text-red-400 uppercase mt-1">Excess: {formatStakeholderCurrency(s.country || "Kenya", claim.excessAmount)}</p>}
+                                                </td>
+                                                <td className="py-3 px-6 text-right">
+                                                    <p className="text-xs font-black text-emerald-600">{formatStakeholderCurrency(s.country || "Kenya", claim.approvedAmount || 0)}</p>
+                                                    {claim.paidAmount !== undefined && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Paid: {formatStakeholderCurrency(s.country || "Kenya", claim.paidAmount)}</p>}
+                                                </td>
+                                                <td className="py-3 px-6 text-right">
+                                                    <Badge className={`${claim.status === 'Settled' || claim.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : claim.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
                                                         {claim.status || "Pending"}
                                                     </Badge>
+                                                    {claim.assessorName && <p className="text-[8px] font-bold text-gray-400 uppercase mt-1 text-right">By {claim.assessorName}</p>}
+                                                    <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
                                                 </td>
                                             </tr>
                                         ))}
@@ -856,6 +983,91 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                             )}
                         </div>
                     </div>
+
+                    {/* Claims Detail Modal */}
+                    <Dialog open={!!selectedClaim} onOpenChange={() => setSelectedClaim(null)}>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle className="text-sm font-black uppercase tracking-widest text-[#004E98] flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    Claim Details — {selectedClaim?.claimId}
+                                </DialogTitle>
+                            </DialogHeader>
+                            {selectedClaim && (
+                                <div className="space-y-5 text-xs">
+                                    {/* General */}
+                                    <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-4">
+                                        <h4 className="col-span-2 text-[10px] font-black uppercase tracking-widest text-[#004E98] mb-1">General</h4>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Claim No.</p><p className="font-bold text-gray-900">{selectedClaim.claimId || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Policy No.</p><p className="font-bold text-gray-900">{selectedClaim.policyNumber || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Claim Type</p><p className="font-bold text-gray-900">{selectedClaim.motorClaimType || selectedClaim.type || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Insurance Ref. No.</p><p className="font-bold text-gray-900">{selectedClaim.insuranceClaimRefNo || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Financial Interest</p><p className="font-bold text-gray-900">{selectedClaim.financialInterest || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Occupation</p><p className="font-bold text-gray-900">{selectedClaim.occupation || "—"}</p></div>
+                                        <div className="col-span-2"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Incident Description</p><p className="font-bold text-gray-700">{selectedClaim.incidentDescription || "—"}</p></div>
+                                    </div>
+                                    {/* Dates */}
+                                    <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-4">
+                                        <h4 className="col-span-2 text-[10px] font-black uppercase tracking-widest text-[#004E98] mb-1">Dates</h4>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Incident Date</p><p className="font-bold text-gray-900">{selectedClaim.date ? new Date(selectedClaim.date).toLocaleDateString('en-KE') : "—"} {selectedClaim.timeOfAccident ? `@ ${selectedClaim.timeOfAccident}` : ""}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Intimation to Agency</p><p className="font-bold text-gray-900">{selectedClaim.dateIntimationAgency ? new Date(selectedClaim.dateIntimationAgency).toLocaleDateString('en-KE') : "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Intimation to Insurer</p><p className="font-bold text-gray-900">{selectedClaim.dateIntimationInsurer ? new Date(selectedClaim.dateIntimationInsurer).toLocaleDateString('en-KE') : "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Date Settled / Rejected</p><p className="font-bold text-gray-900">{selectedClaim.dateSettledRejected ? new Date(selectedClaim.dateSettledRejected).toLocaleDateString('en-KE') : "—"}</p></div>
+                                    </div>
+                                    {/* Accident / Incident Details */}
+                                    <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-4">
+                                        <h4 className="col-span-2 text-[10px] font-black uppercase tracking-widest text-[#004E98] mb-1">Accident / Incident Details</h4>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Place of Occurrence</p><p className="font-bold text-gray-900">{selectedClaim.placeOfOccurrence || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Police Station</p><p className="font-bold text-gray-900">{selectedClaim.policeStation || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Injuries</p><p className="font-bold text-gray-900">{selectedClaim.injuries || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Driver's Name</p><p className="font-bold text-gray-900">{selectedClaim.driverName || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Repairer / Garage</p><p className="font-bold text-gray-900">{selectedClaim.repairer || selectedClaim.garage || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Assessor Appointed</p><p className="font-bold text-gray-900">{selectedClaim.dateAssessorAppointed ? new Date(selectedClaim.dateAssessorAppointed).toLocaleDateString('en-KE') : "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Repair Authorised</p><p className="font-bold text-gray-900">{selectedClaim.dateRepairAuthorised ? new Date(selectedClaim.dateRepairAuthorised).toLocaleDateString('en-KE') : "—"}</p></div>
+                                    </div>
+                                    {/* Vehicle Details — only if motor */}
+                                    {selectedClaim.vehicleReg && (
+                                        <div className="grid grid-cols-3 gap-3 bg-gray-50 rounded-lg p-4">
+                                            <h4 className="col-span-3 text-[10px] font-black uppercase tracking-widest text-[#004E98] mb-1">Vehicle Details</h4>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Reg. No.</p><p className="font-bold text-gray-900">{selectedClaim.vehicleReg || "—"}</p></div>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Make / Model</p><p className="font-bold text-gray-900">{selectedClaim.vehicleMake} {selectedClaim.vehicleModel}</p></div>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">YOM / CC</p><p className="font-bold text-gray-900">{selectedClaim.yearOfManufacture || "—"} / {selectedClaim.engineCC || "—"} CC</p></div>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Excess Paid</p><p className="font-bold text-gray-900">{selectedClaim.excessPaid ? formatStakeholderCurrency(s.country || "Kenya", selectedClaim.excessPaid) : "—"}</p></div>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Cash in Lieu</p><p className="font-bold text-gray-900">{selectedClaim.cashInLieu ? "Yes" : "No"}</p></div>
+                                            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Write-off</p><p className="font-bold text-gray-900">{selectedClaim.writeOff ? "Yes" : "No"}</p></div>
+                                        </div>
+                                    )}
+                                    {/* Financials */}
+                                    <div className="grid grid-cols-3 gap-3 bg-emerald-50/50 rounded-lg p-4">
+                                        <h4 className="col-span-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-1">Financials</h4>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Claimed</p><p className="font-black text-gray-900">{formatStakeholderCurrency(s.country || "Kenya", selectedClaim.amount || 0)}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Approved</p><p className="font-black text-emerald-700">{formatStakeholderCurrency(s.country || "Kenya", selectedClaim.approvedAmount || 0)}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Paid</p><p className="font-black text-emerald-600">{formatStakeholderCurrency(s.country || "Kenya", selectedClaim.paidAmount || 0)}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Excess Amount</p><p className="font-black text-red-600">{formatStakeholderCurrency(s.country || "Kenya", selectedClaim.excessAmount || 0)}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Assessor</p><p className="font-bold text-gray-900">{selectedClaim.assessorName || "—"}</p></div>
+                                        <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Recovering From</p><p className="font-bold text-gray-900">{selectedClaim.recoveringFrom || "—"}</p></div>
+                                    </div>
+                                    {/* Processing */}
+                                    <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-4">
+                                        <h4 className="col-span-2 text-[10px] font-black uppercase tracking-widest text-[#004E98] mb-1">Claim Processing</h4>
+                                        <div className="col-span-2"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Remarks</p><p className="font-bold text-gray-700">{selectedClaim.remarks || "—"}</p></div>
+                                        <div className="flex gap-4 col-span-2 flex-wrap">
+                                            <span className={`text-[9px] font-black px-2 py-1 rounded-full uppercase ${selectedClaim.fullySettled ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>Fully Settled: {selectedClaim.fullySettled ? "Yes" : "No"}</span>
+                                            <span className={`text-[9px] font-black px-2 py-1 rounded-full uppercase ${selectedClaim.dvIssued ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>DV Issued: {selectedClaim.dvIssued ? "Yes" : "No"}</span>
+                                            <span className={`text-[9px] font-black px-2 py-1 rounded-full uppercase ${selectedClaim.rejectedByAgency ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}`}>Rejected by Agency: {selectedClaim.rejectedByAgency ? "Yes" : "No"}</span>
+                                            <span className={`text-[9px] font-black px-2 py-1 rounded-full uppercase ${selectedClaim.rejectedByInsurer ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}`}>Rejected by Insurer: {selectedClaim.rejectedByInsurer ? "Yes" : "No"}</span>
+                                        </div>
+                                        {selectedClaim.dvIssued && (
+                                            <>
+                                                <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">DV Issue Date</p><p className="font-bold text-gray-900">{selectedClaim.dvIssueDate ? new Date(selectedClaim.dvIssueDate).toLocaleDateString('en-KE') : "—"}</p></div>
+                                                <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">DV Return Date</p><p className="font-bold text-gray-900">{selectedClaim.dvReturnDate ? new Date(selectedClaim.dvReturnDate).toLocaleDateString('en-KE') : "—"}</p></div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
                 </TabsContent>
 
                 <TabsContent value="payment" className="p-0 border-t border-gray-100">
@@ -887,24 +1099,32 @@ export function StakeholderProfile({ profile, isLoading, onBack, onLogInteractio
                                                     <p className="text-xs font-bold text-gray-500">
                                                         {new Date(payment.date || new Date()).toLocaleDateString('en-KE')}
                                                     </p>
+                                                    {(payment.periodFrom && payment.periodTo) && (
+                                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                                                            {new Date(payment.periodFrom).toLocaleDateString('en-KE', {month:'short', year:'2-digit'})} – {new Date(payment.periodTo).toLocaleDateString('en-KE', {month:'short', year:'2-digit'})}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className="py-3 px-6">
                                                     <p className="text-[10px] font-bold text-gray-400 tracking-wider font-mono">
                                                         {payment.reference || "N/A"}
                                                     </p>
+                                                    {payment.receiptNumber && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Rcpt: {payment.receiptNumber}</p>}
                                                 </td>
                                                 <td className="py-3 px-6">
                                                     <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-                                                        {payment.type || "Service Payment"}
+                                                        {payment.description || payment.type || `${payment.method || ""} Payment`}
                                                     </p>
+                                                    {payment.policyNumber && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Pol: {payment.policyNumber}</p>}
                                                 </td>
                                                 <td className="py-3 px-6 text-right">
                                                     <span className="text-sm font-black text-gray-900">{Number(payment.amount).toLocaleString() || 0}</span>
                                                 </td>
                                                 <td className="py-3 px-6 text-center">
-                                                    <Badge className={`${payment.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
+                                                    <Badge className={`${payment.status === 'Paid' || payment.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'Partial' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'} border-none uppercase text-[9px] font-black tracking-widest`}>
                                                         {payment.status || "Paid"}
                                                     </Badge>
+                                                    {payment.isPartial && <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mt-1">Partial Payment</p>}
                                                 </td>
                                             </tr>
                                         ))}

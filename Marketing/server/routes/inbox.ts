@@ -355,7 +355,13 @@ export function registerInboxRoutes(app: Express) {
       if (!convo) return res.status(404).json({ error: "Conversation not found" });
 
       if (convo.caseId) {
-        return res.status(400).json({ error: "Conversation is already linked to a case" });
+        const [linkedCase] = await db.select({ status: cases.status }).from(cases).where(eq(cases.id, convo.caseId)).limit(1);
+        if (linkedCase && !['resolved', 'closed', 'escalated'].includes(linkedCase.status)) {
+          return res.status(400).json({ 
+            error: "ACTIVE_CASE_EXISTS", 
+            message: "There is already an active case for this conversation. Please resolve or escalate it before creating a new one." 
+          });
+        }
       }
 
       // Fetch all messages in the conversation to give AI full context

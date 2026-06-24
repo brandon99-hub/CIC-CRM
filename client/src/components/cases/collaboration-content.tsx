@@ -7,12 +7,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     MessageSquare, Search, AtSign, Filter, ChevronLeft, ChevronRight, ExternalLink, User,
     Send, CheckCircle2, LayoutDashboard, BookOpen, Clock, Terminal, FolderOpen, FileText,
-    Paperclip, Download, FileStack, Loader2
+    Paperclip, Download, FileStack, Loader2, Plus
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { MentionInput } from "@/components/shared/mention-input";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useQuery } from "@tanstack/react-query";
 
 
 
@@ -33,6 +38,22 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // New Discussion Modal State
+    const [newDiscussionModalOpen, setNewDiscussionModalOpen] = useState(false);
+    const [selectedNewCaseId, setSelectedNewCaseId] = useState("");
+    const [newDiscussionText, setNewDiscussionText] = useState("");
+    const [isCreatingDiscussion, setIsCreatingDiscussion] = useState(false);
+
+    const { data: allCasesData = [] } = useQuery<any[]>({
+        queryKey: ["cases"],
+        queryFn: async () => {
+            const res = await apiRequest("/api/cases");
+            const data = await res.json();
+            return data.cases || [];
+        }
+    });
+    const caseOptions = allCasesData.map(c => ({ id: c.id, value: c.id, label: `#${c.caseNumber} - ${c.status}` }));
 
     useEffect(() => {
         fetchDiscussions();
@@ -86,6 +107,30 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
             fetchMessages(selectedDiscussion.id);
         }
     }, [selectedDiscussion?.id]);
+
+    const handleStartNewDiscussion = async () => {
+        if (!selectedNewCaseId || !newDiscussionText.trim()) return;
+        try {
+            setIsCreatingDiscussion(true);
+            const res = await apiRequest(`/api/cases/${selectedNewCaseId}/comments`, {
+                method: "POST",
+                body: JSON.stringify({
+                    text: newDiscussionText,
+                    isInternal: true
+                })
+            });
+            if (!res.ok) throw new Error("Failed to start discussion");
+            toast({ title: "Success", description: "Discussion initialized." });
+            setNewDiscussionModalOpen(false);
+            setNewDiscussionText("");
+            setSelectedNewCaseId("");
+            fetchDiscussions();
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to initialize discussion", variant: "destructive" });
+        } finally {
+            setIsCreatingDiscussion(false);
+        }
+    };
 
     const sendMessage = async () => {
         if (!newMessage.trim() || !selectedDiscussion) return;
@@ -207,14 +252,25 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
                         <h1 className="text-sm font-black text-gray-900 flex items-center gap-2 tracking-tight uppercase">
                             <MessageSquare className="h-4 w-4 text-[#004E98]" /> Discussions
                         </h1>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-gray-400 hover:text-gray-600"
-                            onClick={() => setSidebarCollapsed(true)}
-                        >
-                            <ChevronLeft className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-[#004E98] hover:text-[#004E98] hover:bg-blue-50"
+                                onClick={() => setNewDiscussionModalOpen(true)}
+                                title="New Discussion"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-gray-400 hover:text-gray-600"
+                                onClick={() => setSidebarCollapsed(true)}
+                            >
+                                <ChevronLeft className="h-3.5 w-3.5" />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="relative">
@@ -377,18 +433,18 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
                                                                             <span className="text-[10px] font-bold text-gray-500 truncate">{at.fileName}</span>
                                                                         </div>
                                                                         <div className="flex items-center gap-1">
-                                                                            <Button 
-                                                                                variant="ghost" 
-                                                                                size="icon" 
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
                                                                                 className="h-7 w-7 text-[#004E98] hover:bg-blue-50 transition-colors"
                                                                                 onClick={() => window.open(at.fileUrl, '_blank')}
                                                                                 title="Open in new tab"
                                                                             >
                                                                                 <ExternalLink className="h-3.5 w-3.5" />
                                                                             </Button>
-                                                                            <Button 
-                                                                                variant="ghost" 
-                                                                                size="icon" 
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
                                                                                 className="h-7 w-7 text-emerald-600 hover:bg-emerald-50 transition-colors"
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
@@ -417,19 +473,19 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
                                 <div className="p-4 bg-white border-t">
                                     <div className="max-w-2xl mx-auto flex gap-2 items-center bg-gray-50 p-1.5 rounded-2xl border border-gray-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#004E98]/10 transition-all duration-300">
                                         <div className="flex items-center gap-1 pl-1">
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 disabled={isUploading}
                                                 className="h-8 w-8 text-gray-400 hover:text-[#004E98] hover:bg-blue-50 rounded-lg relative"
                                                 onClick={() => fileInputRef.current?.click()}
                                             >
                                                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
                                             </Button>
-                                            <input 
-                                                type="file" 
-                                                ref={fileInputRef} 
-                                                className="hidden" 
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                className="hidden"
                                                 onChange={handleFileUpload}
                                             />
                                         </div>
@@ -457,6 +513,60 @@ export function CollaborationContent({ user, onViewWorkspace }: CollaborationCon
                     </>
                 )}
             </div>
+
+            {/* File Input */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileUpload}
+            />
+
+            {/* New Discussion Modal */}
+            <Dialog open={newDiscussionModalOpen} onOpenChange={setNewDiscussionModalOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Start New Discussion</DialogTitle>
+                        <DialogDescription>
+                            Initialize an internal discussion thread for an existing case.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Select Case</Label>
+                            <SearchableSelect
+                                options={caseOptions}
+                                value={selectedNewCaseId}
+                                onValueChange={(val) => setSelectedNewCaseId(val || "")}
+                                placeholder="Search cases by number..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>First Message</Label>
+                            <MentionInput
+                                value={newDiscussionText}
+                                onChange={setNewDiscussionText}
+                                onSend={handleStartNewDiscussion}
+                                placeholder="Tag colleagues with @ to collaborate..."
+                                className="flex-1"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setNewDiscussionModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleStartNewDiscussion}
+                            disabled={!selectedNewCaseId || !newDiscussionText.trim() || isCreatingDiscussion}
+                            className="bg-[#004E98] hover:bg-[#003B73] text-white"
+                        >
+                            {isCreatingDiscussion ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MessageSquare className="h-4 w-4 mr-2" />}
+                            Start Discussion
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

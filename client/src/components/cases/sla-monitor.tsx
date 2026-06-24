@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatLabel, statusColors, priorityColors, getDeadlineStatus } from "./case-utils";
-import { Clock, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, XCircle, Shield } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, XCircle, Shield, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-client";
 
@@ -104,7 +104,7 @@ export function SlaMonitor({ onCaseClick, currentUserId }: SlaMonitorProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <Clock className="h-8 w-8 animate-spin text-[#004E98]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#004E98]" />
             </div>
         );
     }
